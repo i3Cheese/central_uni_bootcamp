@@ -1,12 +1,21 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
 
 from core.config import settings
 
-connect_args = {"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=False,
+    future=True,
+)
 
-engine = create_engine(settings.DATABASE_URL, connect_args=connect_args)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
 
 
 class Base(DeclarativeBase):

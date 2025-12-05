@@ -1,9 +1,8 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 
 class UserBase(BaseModel):
-    email: EmailStr
-    is_active: bool = True
+    login: str
 
 
 class UserCreate(UserBase):

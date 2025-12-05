@@ -1,16 +1,16 @@
-from typing import Generator, Annotated
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from typing import Annotated, AsyncGenerator
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import SessionLocal
-
-
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from core.database import AsyncSessionLocal
 
 
-SessionDep = Annotated[Session, Depends(get_db)]
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
