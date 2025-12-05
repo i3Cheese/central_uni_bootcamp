@@ -1,15 +1,22 @@
 from typing import Literal
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
-from api.deps import CurrentUser, SessionDep
+from api.deps import BoardWithAccess, CurrentUser, SessionDep
 from api.utils import get_user_permission
 from models.access import Access
 from models.board import Board
 from models.sticker import Sticker
-from schemas.board import BoardCreate, BoardListResponse, BoardResponse, BoardSummary
+from schemas.board import (
+    BoardCreate,
+    BoardDetail,
+    BoardListResponse,
+    BoardResponse,
+    BoardSummary,
+    StickerResponse,
+)
 
 router = APIRouter()
 
@@ -169,7 +176,7 @@ async def get_boards(
             continue
         
         sticker_count = sticker_counts.get(board.board_id, 0)
-        creator_login = board.creator.login if board.creator else None
+        creator_login = board.creator.login
         
         board_summaries.append(
             BoardSummary(
@@ -185,4 +192,66 @@ async def get_boards(
         )
     
     return BoardListResponse(boards=board_summaries)
+
+
+@router.get(
+    "/{board_id}",
+    response_model=BoardDetail,
+    summary="Получение доски по ID",
+    description="Получение полной информации о доске, включая все стикеры",
+)
+async def get_board(
+    board_with_access: BoardWithAccess,
+    db: SessionDep,
+) -> BoardDetail:
+    """
+    Получение доски по ID со всеми стикерами.
+    
+    - board_id: ID доски
+    - Возвращает полную информацию о доске и все стикеры
+    """
+    board, permission = board_with_access
+    
+    await db.refresh(board, ["creator", "stickers"])
+    
+    if board.creator is None:
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Board creator not found",
+        )
+    
+    stickers = []
+    for sticker in board.stickers:
+        stickers.append(
+            StickerResponse(
+                stickerId=sticker.sticker_id,
+                boardId=sticker.board_id,
+                x=sticker.x,
+                y=sticker.y,
+                width=sticker.width,
+                height=sticker.height,
+                text=sticker.text,
+                layerLevel=sticker.layer_level,
+                color=sticker.color,
+                createdBy=sticker.created_by,
+                createdAt=sticker.created_at,
+                updatedAt=sticker.updated_at,
+            )
+        )
+    
+    creator_login = board.creator.login
+    
+    return BoardDetail(
+        boardId=board.board_id,
+        title=board.title or "",
+        description=board.description,
+        ownerId=board.creator_id,
+        ownerName=creator_login,
+        backgroundColor=board.background_color,
+        createdAt=board.created_at,
+        updatedAt=board.updated_at,
+        stickers=stickers,
+        permission=permission.value,
+    )
 

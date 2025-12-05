@@ -91,3 +91,55 @@ class BoardListResponse(BaseModel):
 
     boards: list[BoardSummary] = Field(..., description="Список досок")
 
+
+class StickerResponse(BaseModel):
+    """Схема ответа со стикером."""
+
+    stickerId: int = Field(..., description="Уникальный идентификатор стикера", examples=[1])
+    boardId: int = Field(..., description="ID доски", examples=[1])
+    x: float = Field(..., description="Координата X", examples=[100.5])
+    y: float = Field(..., description="Координата Y", examples=[200.3])
+    width: float | None = Field(default=None, description="Ширина стикера", examples=[200.0])
+    height: float | None = Field(default=None, description="Высота стикера", examples=[200.0])
+    text: str | None = Field(default=None, description="Текст стикера", examples=["Текст стикера"])
+    layerLevel: int = Field(..., description="Уровень слоя для порядка наложения", examples=[1])
+    color: str = Field(..., description="Цвет стикера (hex)", examples=["#FFEB3B"])
+    createdBy: int = Field(..., description="ID создателя", examples=[1])
+    createdAt: datetime = Field(..., description="Дата создания", examples=["2024-01-15T10:30:00Z"])
+    updatedAt: datetime = Field(..., description="Дата обновления", examples=["2024-01-15T14:25:00Z"])
+
+    model_config = {"from_attributes": True}
+
+
+class BoardDetail(BaseModel):
+    """Схема детальной информации о доске со стикерами."""
+
+    boardId: int = Field(..., description="Уникальный идентификатор доски", examples=[1])
+    title: str = Field(..., description="Название доски", examples=["Проектирование системы"])
+    description: str | None = Field(
+        default=None, description="Описание доски", examples=["Доска для обсуждения архитектуры"]
+    )
+    ownerId: int = Field(..., description="ID владельца доски", examples=[1])
+    ownerName: str | None = Field(
+        default=None, description="Логин владельца доски", examples=["user@example.com"]
+    )
+    backgroundColor: str | None = Field(
+        default=None, description="Цвет фона доски", examples=["#FFFFFF"]
+    )
+    createdAt: datetime = Field(
+        ..., description="Дата и время создания", examples=["2024-01-15T10:30:00Z"]
+    )
+    updatedAt: datetime = Field(
+        ..., description="Дата и время последнего обновления", examples=["2024-01-15T14:25:00Z"]
+    )
+    stickers: list[StickerResponse] = Field(
+        default_factory=list, description="Список всех стикеров на доске"
+    )
+    permission: str = Field(
+        ...,
+        description="Права текущего пользователя на доску",
+        examples=["owner"],
+    )
+
+    model_config = {"from_attributes": True}
+

@@ -10,6 +10,7 @@ from sqlalchemy import String, DateTime, func
 if TYPE_CHECKING:
     from .board import Board
     from .access import Access
+    from .sticker import Sticker
 
 
 class User(Base):
@@ -31,4 +32,7 @@ class User(Base):
     )
     granted_accesses: Mapped[list["Access"]] = relationship(
         "Access", foreign_keys="Access.granted_by"
+    )
+    created_stickers: Mapped[list["Sticker"]] = relationship(
+        "Sticker", foreign_keys="Sticker.created_by"
     )
