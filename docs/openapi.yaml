@@ -53,14 +53,6 @@ paths:
     $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers'
   /boards/{boardId}/stickers/{stickerId}:
     $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}'
-  /boards/{boardId}/stickers/{stickerId}/move:
-    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1move'
-  /boards/{boardId}/stickers/{stickerId}/resize:
-    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1resize'
-  /boards/{boardId}/stickers/{stickerId}/color:
-    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1color'
-  /boards/{boardId}/stickers/{stickerId}/text:
-    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1text'
 
   # Sharing endpoints
   /boards/{boardId}/share:
