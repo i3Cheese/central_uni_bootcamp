@@ -1,0 +1,36 @@
+Table User {
+  id int [primary key, increment]
+  login string [unique, not null]
+  hash_password string [not null]
+}
+
+Table Board {
+  id int [primary key, increment]
+  creator_id int [not null, ref: > User.id]
+  name string
+  description string
+  background_color string
+  is_public boolean [default: false]
+}
+
+Table Access {
+  id int [primary key, increment]
+  user_id int [not null, ref: > User.id]
+  board_id int [not null, ref: > Board.id]
+  
+  indexes {
+    (user_id, board_id) [unique]
+  }
+}
+
+Table Sticker {
+  id int [primary key, increment]
+  board_id int [not null, ref: > Board.id]
+  x float [not null]
+  y float [not null]
+  layer_level int [not null]
+  text string
+  width float
+  height float
+}
+
