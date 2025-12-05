@@ -28,14 +28,8 @@ paths:
             schema:
               type: object
               required:
-                - requesterId
                 - title
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 title:
                   type: string
                   minLength: 1
@@ -198,14 +192,7 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - requesterId
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 title:
                   type: string
                   minLength: 1
@@ -272,14 +259,7 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - requesterId
-              properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
+              properties: {}
       responses:
         '204':
           description: Доска успешно удалена
@@ -403,9 +383,13 @@ components:
           example: "Иван Иванов"
         permission:
           type: string
-          enum: [owner, view, edit, admin]
+          enum: [owner, view, edit]
           example: "owner"
-          description: Права текущего пользователя на доску
+          description: |
+            Права текущего пользователя на доску:
+            - owner: владелец (может удалить доску, управлять правами участников, редактировать)
+            - view: только просмотр
+            - edit: просмотр и редактирование
         stickerCount:
           type: integer
           example: 15
@@ -459,9 +443,13 @@ components:
           description: Список всех стикеров на доске
         permission:
           type: string
-          enum: [owner, view, edit, admin]
+          enum: [owner, view, edit]
           example: "owner"
-          description: Права текущего пользователя на доску
+          description: |
+            Права текущего пользователя на доску:
+            - owner: владелец (может удалить доску, управлять правами участников, редактировать)
+            - view: только просмотр
+            - edit: просмотр и редактирование
 
     Sticker:
       type: object

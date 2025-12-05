@@ -36,16 +36,10 @@ paths:
             schema:
               type: object
               required:
-                - requesterId
                 - x
                 - y
                 - z
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 x:
                   type: number
                   format: float
@@ -156,14 +150,7 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - requesterId
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 x:
                   type: number
                   format: float
@@ -267,14 +254,7 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - requesterId
-              properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
+              properties: {}
       responses:
         '204':
           description: Стикер успешно удален
@@ -327,16 +307,10 @@ paths:
             schema:
               type: object
               required:
-                - requesterId
                 - x
                 - y
                 - z
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 x:
                   type: number
                   format: float
@@ -414,15 +388,9 @@ paths:
             schema:
               type: object
               required:
-                - requesterId
                 - width
                 - height
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 width:
                   type: number
                   format: float
@@ -499,14 +467,8 @@ paths:
             schema:
               type: object
               required:
-                - requesterId
                 - color
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
@@ -574,14 +536,8 @@ paths:
             schema:
               type: object
               required:
-                - requesterId
                 - text
               properties:
-                requesterId:
-                  type: string
-                  format: uuid
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                  description: ID пользователя, выполняющего запрос
                 text:
                   type: string
                   maxLength: 5000

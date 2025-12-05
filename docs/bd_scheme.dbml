@@ -20,6 +20,9 @@ Table accesses {
   access_id int [primary key, increment]
   user_id int [not null, ref: > users.user_id]
   board_id int [not null, ref: > boards.board_id]
+  permission string [not null, default: 'view', note: 'view или edit']
+  granted_at timestamp [not null, default: `now()`]
+  granted_by int [not null, ref: > users.user_id, note: 'ID пользователя, предоставившего доступ']
   
   indexes {
     (user_id, board_id) [unique]

@@ -27,5 +27,8 @@ class User(Base):
         "Board", back_populates="creator", foreign_keys="Board.creator_id"
     )
     accesses: Mapped[list["Access"]] = relationship(
-        "Access", back_populates="user"
+        "Access", back_populates="user", foreign_keys="Access.user_id"
+    )
+    granted_accesses: Mapped[list["Access"]] = relationship(
+        "Access", foreign_keys="Access.granted_by"
     )
