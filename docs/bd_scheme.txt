@@ -1,25 +1,29 @@
-Пользователь
+Пользователь (users)
 - id
 - login
-- password
+- hash_password
+- created_at
 
-Доступы
-- id user
-- id board
-
-Доска
+Доступы (accesses)
 - id
-- id user (creator)
-- Name
-- Description
-- BackgroundColor
+- user_id
+- board_id
+- уникальный индекс (user_id, board_id)
 
-Стикеры
+Доска (boards)
 - id
-- id board
+- creator_id (id пользователя-создателя)
+- name
+- description
+- background_color
+- is_public
+
+Стикеры (stickers)
+- id
+- board_id
 - x
 - y
-- z
+- layer_level
 - text
 - width
 - height
