@@ -52,11 +52,6 @@ paths:
                   pattern: '^#[0-9A-Fa-f]{6}$'
                   example: "#FFFFFF"
                   description: Цвет фона доски (hex формат)
-                isPublic:
-                  type: boolean
-                  default: false
-                  example: false
-                  description: Публичная ли доска (доступна всем по ссылке)
       responses:
         '201':
           description: Доска успешно создана
@@ -133,8 +128,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/BoardSummary'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
         '401':
           description: Не авторизован
           content:
@@ -226,9 +219,6 @@ paths:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
                   example: "#F0F0F0"
-                isPublic:
-                  type: boolean
-                  example: false
       responses:
         '200':
           description: Доска успешно обновлена
@@ -374,10 +364,6 @@ components:
           type: string
           example: "#FFFFFF"
           description: Цвет фона доски
-        isPublic:
-          type: boolean
-          example: false
-          description: Публичная ли доска
         createdAt:
           type: string
           format: date-time
@@ -424,9 +410,6 @@ components:
           type: integer
           example: 15
           description: Количество стикеров на доске
-        isPublic:
-          type: boolean
-          example: false
         updatedAt:
           type: string
           format: date-time
@@ -461,9 +444,6 @@ components:
         backgroundColor:
           type: string
           example: "#FFFFFF"
-        isPublic:
-          type: boolean
-          example: false
         createdAt:
           type: string
           format: date-time
@@ -548,19 +528,3 @@ components:
           format: date-time
           example: "2024-01-15T14:25:00Z"
 
-    Pagination:
-      type: object
-      properties:
-        page:
-          type: integer
-          example: 1
-        limit:
-          type: integer
-          example: 20
-        total:
-          type: integer
-          example: 45
-          description: Общее количество элементов
-        totalPages:
-          type: integer
-          example: 3

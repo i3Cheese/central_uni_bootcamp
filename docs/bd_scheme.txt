@@ -13,7 +13,6 @@
 - Name
 - Description
 - BackgroundColor
-- isPublic
 
 Стикеры
 - id

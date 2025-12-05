@@ -57,10 +57,6 @@ paths:
                   login:
                     type: string
                     example: "user@example.com"
-                  token:
-                    type: string
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    description: JWT токен для авторизации
                   createdAt:
                     type: string
                     format: date-time
