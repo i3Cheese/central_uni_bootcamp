@@ -143,8 +143,7 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
       responses:
         '200':
           description: Доска успешно получена
@@ -184,8 +183,7 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -251,8 +249,7 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -319,9 +316,8 @@ components:
         - updatedAt
       properties:
         boardId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
           description: Уникальный идентификатор доски
         title:
           type: string
@@ -332,9 +328,8 @@ components:
           example: "Доска для обсуждения архитектуры"
           description: Описание доски
         ownerId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
           description: ID владельца доски
         ownerName:
           type: string
@@ -365,9 +360,8 @@ components:
         - updatedAt
       properties:
         boardId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
         title:
           type: string
           example: "Проектирование системы"
@@ -375,9 +369,8 @@ components:
           type: string
           example: "Доска для обсуждения архитектуры"
         ownerId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
         ownerName:
           type: string
           example: "Иван Иванов"
@@ -409,9 +402,8 @@ components:
         - updatedAt
       properties:
         boardId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
         title:
           type: string
           example: "Проектирование системы"
@@ -419,9 +411,8 @@ components:
           type: string
           example: "Доска для обсуждения архитектуры"
         ownerId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
         ownerName:
           type: string
           example: "Иван Иванов"
@@ -466,13 +457,11 @@ components:
         - updatedAt
       properties:
         stickerId:
-          type: string
-          format: uuid
-          example: "770e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 2
         boardId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
         x:
           type: number
           format: float
@@ -504,9 +493,8 @@ components:
           type: integer
           example: 1
         createdBy:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
         createdAt:
           type: string
           format: date-time

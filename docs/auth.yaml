@@ -51,9 +51,8 @@ paths:
                 type: object
                 properties:
                   userId:
-                    type: string
-                    format: uuid
-                    example: "550e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 1
                   login:
                     type: string
                     example: "user@example.com"
@@ -106,9 +105,8 @@ paths:
                 type: object
                 properties:
                   userId:
-                    type: string
-                    format: uuid
-                    example: "550e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 1
                   login:
                     type: string
                     example: "user@example.com"

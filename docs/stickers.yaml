@@ -27,8 +27,7 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -135,15 +134,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: stickerId
           in: path
           required: true
           description: ID стикера
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -239,15 +236,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: stickerId
           in: path
           required: true
           description: ID стикера
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -291,15 +286,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: stickerId
           in: path
           required: true
           description: ID стикера
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -372,15 +365,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: stickerId
           in: path
           required: true
           description: ID стикера
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -451,15 +442,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: stickerId
           in: path
           required: true
           description: ID стикера
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -520,15 +509,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: stickerId
           in: path
           required: true
           description: ID стикера
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -617,14 +604,12 @@ components:
         - updatedAt
       properties:
         stickerId:
-          type: string
-          format: uuid
-          example: "770e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 2
           description: Уникальный идентификатор стикера
         boardId:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
           description: ID доски, к которой относится стикер
         x:
           type: number
@@ -664,9 +649,8 @@ components:
           example: 1
           description: Z-индекс для определения порядка наложения
         createdBy:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 1
           description: ID пользователя, создавшего стикер
         createdAt:
           type: string

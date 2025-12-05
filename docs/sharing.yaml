@@ -27,8 +27,7 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -40,9 +39,8 @@ paths:
                 - permission
               properties:
                 userId:
-                  type: string
-                  format: uuid
-                  example: "660e8400-e29b-41d4-a716-446655440000"
+                  type: integer
+                  example: 2
                   description: ID пользователя, которому предоставляется доступ
                 permission:
                   type: string
@@ -62,13 +60,11 @@ paths:
                 type: object
                 properties:
                   boardId:
-                    type: string
-                    format: uuid
-                    example: "550e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 1
                   userId:
-                    type: string
-                    format: uuid
-                    example: "660e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 2
                   permission:
                     type: string
                     enum: [view, edit]
@@ -78,9 +74,8 @@ paths:
                     format: date-time
                     example: "2024-01-15T10:30:00Z"
                   grantedBy:
-                    type: string
-                    format: uuid
-                    example: "550e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 1
                     description: ID пользователя, предоставившего доступ
         '400':
           description: Некорректные данные
@@ -120,8 +115,7 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
       responses:
         '200':
           description: Список пользователей успешно получен
@@ -131,9 +125,8 @@ paths:
                 type: object
                 properties:
                   boardId:
-                    type: string
-                    format: uuid
-                    example: "550e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 1
                   shares:
                     type: array
                     items:
@@ -171,15 +164,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: userId
           in: path
           required: true
           description: ID пользователя
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -203,13 +194,11 @@ paths:
                 type: object
                 properties:
                   boardId:
-                    type: string
-                    format: uuid
-                    example: "550e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 1
                   userId:
-                    type: string
-                    format: uuid
-                    example: "660e8400-e29b-41d4-a716-446655440000"
+                    type: integer
+                    example: 2
                   permission:
                     type: string
                     enum: [view, edit]
@@ -256,15 +245,13 @@ paths:
           required: true
           description: ID доски
           schema:
-            type: string
-            format: uuid
+            type: integer
         - name: userId
           in: path
           required: true
           description: ID пользователя
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
@@ -325,9 +312,8 @@ components:
       type: object
       properties:
         userId:
-          type: string
-          format: uuid
-          example: "660e8400-e29b-41d4-a716-446655440000"
+          type: integer
+          example: 2
         userLogin:
           type: string
           example: "user2@example.com"
