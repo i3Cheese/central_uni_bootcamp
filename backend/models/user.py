@@ -1,12 +1,27 @@
-from .base import Base
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Boolean
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from core.database import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String
+
+if TYPE_CHECKING:
+    from .board import Board
+    from .access import Access
 
 
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    email: Mapped[str] = mapped_column(String, unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    login: Mapped[str] = mapped_column(String, unique=True, index=True)
+    hash_password: Mapped[str] = mapped_column(String)
+
+    # Relationships
+    created_boards: Mapped[list["Board"]] = relationship(
+        "Board", back_populates="creator", foreign_keys="Board.creator_id"
+    )
+    accesses: Mapped[list["Access"]] = relationship(
+        "Access", back_populates="user"
+    )
