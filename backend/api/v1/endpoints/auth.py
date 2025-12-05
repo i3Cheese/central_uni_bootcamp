@@ -1,10 +1,20 @@
-from datetime import datetime, timezone
-from uuid import uuid4
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from fastapi import APIRouter, HTTPException, status
+from sqlalchemy import select
 
-from schemas.auth import RegisterRequest, RegisterResponse, ErrorResponse
+from api.deps import SessionDep
+from core.config import settings
+from core.security import create_access_token, verify_password
+from models.user import User
+from schemas.auth import (
+    ErrorResponse,
+    LoginRequest,
+    LoginResponse,
+    RegisterRequest,
+    RegisterResponse,
+)
 
 
 def hash_password(password: str) -> str:
@@ -34,27 +44,18 @@ router = APIRouter()
         },
     },
 )
-async def register(request: RegisterRequest) -> RegisterResponse:
+async def register(request: RegisterRequest, db: SessionDep) -> RegisterResponse:
     """
     Регистрация нового пользователя.
 
     - **login**: Уникальный логин пользователя (3-50 символов)
     - **password**: Пароль (8-100 символов)
     """
-    # TODO: Проверить, существует ли пользователь с таким логином в БД
-    # Пример:
-    # existing_user = await db.get_user_by_login(request.login)
-    # if existing_user:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_409_CONFLICT,
-    #         detail=ErrorResponse(
-    #             error="USER_EXISTS",
-    #             message="Пользователь с таким логином уже существует",
-    #             details={"field": "login", "reason": "Логин уже занят"},
-    #         ).model_dump(),
-    #     )
-    user_exists = False  # TODO: Заменить на реальную проверку в БД
-    if user_exists:
+    # Проверяем, существует ли пользователь с таким логином
+    result = await db.execute(select(User).where(User.login == request.login))
+    existing_user = result.scalar_one_or_none()
+    
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={
@@ -64,25 +65,67 @@ async def register(request: RegisterRequest) -> RegisterResponse:
             },
         )
 
-    # Хешируем пароль
     hashed_password = hash_password(request.password)
 
-    # TODO: Сохранить пользователя в БД
-    # Пример:
-    # new_user = await db.create_user(
-    #     login=request.login,
-    #     hashed_password=hashed_password,
-    # )
-    # return RegisterResponse(
-    #     userId=new_user.id,
-    #     login=new_user.login,
-    #     createdAt=new_user.created_at,
-    # )
-
-    # Заглушка: возвращаем фейковые данные
-    return RegisterResponse(
-        userId=uuid4(),  # TODO: Заменить на реальный ID из БД
+    new_user = User(
         login=request.login,
-        createdAt=datetime.now(timezone.utc),  # TODO: Заменить на реальную дату из БД
+        hash_password=hashed_password,
+    )
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
+    return RegisterResponse(
+        userId=new_user.id,
+        login=new_user.login,
+        createdAt=new_user.created_at,
+    )
+
+
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Вход в систему",
+    description="Аутентификация пользователя и получение токена",
+    responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "Неверный логин или пароль",
+        },
+    },
+)
+async def login(request: LoginRequest, db: SessionDep) -> LoginResponse:
+    """
+    Вход в систему.
+
+    - **login**: Логин пользователя
+    - **password**: Пароль пользователя
+    """
+    result = await db.execute(select(User).where(User.login == request.login))
+    user = result.scalar_one_or_none()
+
+    if not user or not verify_password(request.password, user.hash_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": "INVALID_CREDENTIALS",
+                "message": "Неверный логин или пароль",
+            },
+        )
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id), "login": user.login},
+        expires_delta=access_token_expires,
+    )
+
+    expires_at = datetime.now(timezone.utc) + access_token_expires
+
+    return LoginResponse(
+        userId=user.id,
+        login=user.login,
+        token=access_token,
+        expiresAt=expires_at,
     )
 

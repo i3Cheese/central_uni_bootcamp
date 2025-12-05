@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from core.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String
+from sqlalchemy import String, DateTime, func
 
 if TYPE_CHECKING:
     from .board import Board
@@ -17,6 +18,9 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     login: Mapped[str] = mapped_column(String, unique=True, index=True)
     hash_password: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     # Relationships
     created_boards: Mapped[list["Board"]] = relationship(

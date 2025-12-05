@@ -1,5 +1,4 @@
 from datetime import datetime
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -26,10 +25,10 @@ class RegisterRequest(BaseModel):
 class RegisterResponse(BaseModel):
     """Схема ответа при успешной регистрации."""
 
-    userId: UUID = Field(
+    userId: int = Field(
         ...,
         description="Уникальный идентификатор пользователя",
-        examples=["550e8400-e29b-41d4-a716-446655440000"],
+        examples=[1],
     )
     login: str = Field(
         ...,
@@ -40,6 +39,46 @@ class RegisterResponse(BaseModel):
         ...,
         description="Дата и время создания аккаунта",
         examples=["2024-01-15T10:30:00Z"],
+    )
+
+
+class LoginRequest(BaseModel):
+    """Схема запроса на вход в систему."""
+
+    login: str = Field(
+        ...,
+        description="Логин пользователя",
+        examples=["user@example.com"],
+    )
+    password: str = Field(
+        ...,
+        description="Пароль пользователя",
+        examples=["SecurePass123!"],
+    )
+
+
+class LoginResponse(BaseModel):
+    """Схема ответа при успешном входе."""
+
+    userId: int = Field(
+        ...,
+        description="Уникальный идентификатор пользователя",
+        examples=[1],
+    )
+    login: str = Field(
+        ...,
+        description="Логин пользователя",
+        examples=["user@example.com"],
+    )
+    token: str = Field(
+        ...,
+        description="JWT токен для авторизации",
+        examples=["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."],
+    )
+    expiresAt: datetime = Field(
+        ...,
+        description="Дата и время истечения токена",
+        examples=["2024-01-16T10:30:00Z"],
     )
 
 
