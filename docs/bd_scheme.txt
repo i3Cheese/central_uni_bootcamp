@@ -1,0 +1,26 @@
+Пользователь
+- id
+- login
+- password
+
+Доступы
+- id user
+- id board
+
+Доска
+- id
+- id user (creator)
+- Name
+- Description
+- BackgroundColor
+- isPublic
+
+Стикеры
+- id
+- id board
+- x
+- y
+- z
+- text
+- width
+- height
