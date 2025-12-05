@@ -76,7 +76,7 @@ async def register(request: RegisterRequest, db: SessionDep) -> RegisterResponse
     await db.refresh(new_user)
 
     return RegisterResponse(
-        userId=new_user.id,
+        userId=new_user.user_id,
         login=new_user.login,
         createdAt=new_user.created_at,
     )
@@ -116,14 +116,14 @@ async def login(request: LoginRequest, db: SessionDep) -> LoginResponse:
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": str(user.id), "login": user.login},
+        data={"sub": str(user.user_id), "login": user.login},
         expires_delta=access_token_expires,
     )
 
     expires_at = datetime.now(timezone.utc) + access_token_expires
 
     return LoginResponse(
-        userId=user.id,
+        userId=user.user_id,
         login=user.login,
         token=access_token,
         expiresAt=expires_at,

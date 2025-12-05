@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from core.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Boolean, ForeignKey
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, func
 
 if TYPE_CHECKING:
     from .user import User
@@ -15,12 +16,21 @@ if TYPE_CHECKING:
 class Board(Base):
     __tablename__ = "boards"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    board_id: Mapped[int] = mapped_column("board_id", primary_key=True, index=True)
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
+    title: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     background_color: Mapped[str | None] = mapped_column(String, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     creator: Mapped["User"] = relationship(

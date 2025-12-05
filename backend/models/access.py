@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 class Access(Base):
     __tablename__ = "accesses"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"), nullable=False)
+    access_id: Mapped[int] = mapped_column("access_id", primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
+    board_id: Mapped[int] = mapped_column(ForeignKey("boards.board_id"), nullable=False)
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="accesses")

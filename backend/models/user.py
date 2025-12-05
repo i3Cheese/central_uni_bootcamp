@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column("user_id", primary_key=True, index=True)
     login: Mapped[str] = mapped_column(String, unique=True, index=True)
     hash_password: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
