@@ -48,8 +48,8 @@ async def register(request: RegisterRequest, db: SessionDep) -> RegisterResponse
     """
     Регистрация нового пользователя.
 
-    - **login**: Уникальный логин пользователя (3-50 символов)
-    - **password**: Пароль (8-100 символов)
+    - login: Уникальный логин пользователя (3-50 символов)
+    - password: Пароль (8-100 символов)
     """
     # Проверяем, существует ли пользователь с таким логином
     result = await db.execute(select(User).where(User.login == request.login))
@@ -99,8 +99,8 @@ async def login(request: LoginRequest, db: SessionDep) -> LoginResponse:
     """
     Вход в систему.
 
-    - **login**: Логин пользователя
-    - **password**: Пароль пользователя
+    - login: Логин пользователя
+    - password: Пароль пользователя
     """
     result = await db.execute(select(User).where(User.login == request.login))
     user = result.scalar_one_or_none()
