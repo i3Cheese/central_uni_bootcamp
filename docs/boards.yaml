@@ -1,0 +1,533 @@
+openapi: 3.0.3
+info:
+  title: Board Service API - Boards
+  description: API управления досками для сервиса коллаборативных досок
+  version: 1.0.0
+
+servers:
+  - url: https://api.boardservice.com/v1
+    description: Production server
+
+tags:
+  - name: Boards
+    description: Управление досками
+
+paths:
+  /boards:
+    post:
+      tags:
+        - Boards
+      summary: Создание новой доски
+      description: Создание новой доски для текущего пользователя
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  example: "Проектирование новой системы"
+                  description: Название доски
+                description:
+                  type: string
+                  maxLength: 1000
+                  example: "Доска для обсуждения архитектуры"
+                  description: Описание доски
+                backgroundColor:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                  example: "#FFFFFF"
+                  description: Цвет фона доски (hex формат)
+                isPublic:
+                  type: boolean
+                  default: false
+                  example: false
+                  description: Публичная ли доска (доступна всем по ссылке)
+      responses:
+        '201':
+          description: Доска успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - Boards
+      summary: Получение списка досок
+      description: Получение списка досок текущего пользователя (собственных и расшаренных)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: filter
+          in: query
+          description: Фильтр досок
+          schema:
+            type: string
+            enum: [own, shared, all]
+            default: all
+        - name: page
+          in: query
+          description: Номер страницы
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Количество элементов на странице
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sortBy
+          in: query
+          description: Поле для сортировки
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, title]
+            default: updatedAt
+        - name: sortOrder
+          in: query
+          description: Порядок сортировки
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Список досок успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  boards:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BoardSummary'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /boards/{boardId}:
+    get:
+      tags:
+        - Boards
+      summary: Получение доски по ID
+      description: Получение полной информации о доске, включая все стикеры
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Доска успешно получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardDetail'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Boards
+      summary: Обновление доски
+      description: Обновление настроек доски
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  example: "Обновленное название"
+                description:
+                  type: string
+                  maxLength: 1000
+                  example: "Обновленное описание"
+                backgroundColor:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                  example: "#F0F0F0"
+                isPublic:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Доска успешно обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет прав на редактирование
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Boards
+      summary: Удаление доски
+      description: Удаление доски (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Доска успешно удалена
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет прав на удаление (только владелец может удалить)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT токен, полученный при входе/регистрации
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "VALIDATION_ERROR"
+          description: Код ошибки
+        message:
+          type: string
+          example: "Некорректные данные запроса"
+          description: Человекочитаемое описание ошибки
+        details:
+          type: object
+          description: Дополнительная информация об ошибке
+
+    Board:
+      type: object
+      required:
+        - boardId
+        - title
+        - ownerId
+        - createdAt
+        - updatedAt
+      properties:
+        boardId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          description: Уникальный идентификатор доски
+        title:
+          type: string
+          example: "Проектирование системы"
+          description: Название доски
+        description:
+          type: string
+          example: "Доска для обсуждения архитектуры"
+          description: Описание доски
+        ownerId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          description: ID владельца доски
+        ownerName:
+          type: string
+          example: "Иван Иванов"
+          description: Имя владельца доски
+        backgroundColor:
+          type: string
+          example: "#FFFFFF"
+          description: Цвет фона доски
+        isPublic:
+          type: boolean
+          example: false
+          description: Публичная ли доска
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: Дата и время создания
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:25:00Z"
+          description: Дата и время последнего обновления
+
+    BoardSummary:
+      type: object
+      required:
+        - boardId
+        - title
+        - ownerId
+        - permission
+        - updatedAt
+      properties:
+        boardId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        title:
+          type: string
+          example: "Проектирование системы"
+        description:
+          type: string
+          example: "Доска для обсуждения архитектуры"
+        ownerId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        ownerName:
+          type: string
+          example: "Иван Иванов"
+        permission:
+          type: string
+          enum: [owner, view, edit, admin]
+          example: "owner"
+          description: Права текущего пользователя на доску
+        stickerCount:
+          type: integer
+          example: 15
+          description: Количество стикеров на доске
+        isPublic:
+          type: boolean
+          example: false
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:25:00Z"
+
+    BoardDetail:
+      type: object
+      required:
+        - boardId
+        - title
+        - ownerId
+        - createdAt
+        - updatedAt
+      properties:
+        boardId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        title:
+          type: string
+          example: "Проектирование системы"
+        description:
+          type: string
+          example: "Доска для обсуждения архитектуры"
+        ownerId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        ownerName:
+          type: string
+          example: "Иван Иванов"
+        backgroundColor:
+          type: string
+          example: "#FFFFFF"
+        isPublic:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:25:00Z"
+        stickers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sticker'
+          description: Список всех стикеров на доске
+        permission:
+          type: string
+          enum: [owner, view, edit, admin]
+          example: "owner"
+          description: Права текущего пользователя на доску
+
+    Sticker:
+      type: object
+      required:
+        - stickerId
+        - boardId
+        - x
+        - y
+        - width
+        - height
+        - color
+        - createdAt
+        - updatedAt
+      properties:
+        stickerId:
+          type: string
+          format: uuid
+          example: "770e8400-e29b-41d4-a716-446655440000"
+        boardId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        x:
+          type: number
+          format: float
+          example: 100.5
+        y:
+          type: number
+          format: float
+          example: 200.3
+        width:
+          type: number
+          format: float
+          example: 200
+        height:
+          type: number
+          format: float
+          example: 200
+        color:
+          type: string
+          example: "#FFEB3B"
+        text:
+          type: string
+          example: "Текст стикера"
+        zIndex:
+          type: integer
+          example: 1
+        createdBy:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:25:00Z"
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 45
+          description: Общее количество элементов
+        totalPages:
+          type: integer
+          example: 3

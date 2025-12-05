@@ -1,0 +1,77 @@
+openapi: 3.0.3
+info:
+  title: Board Service API
+  description: |
+    API для сервиса коллаборативных досок (аналог Miro)
+    
+    ## Функциональность
+    - Регистрация и вход в личный кабинет
+    - Создание и управление досками
+    - Добавление, перемещение и редактирование стикеров
+    - Совместный доступ к доскам
+    
+    ## Аутентификация
+    Все эндпоинты (кроме регистрации и входа) требуют JWT токен в заголовке:
+    ```
+    Authorization: Bearer <token>
+    ```
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: https://api.boardservice.com/v1
+    description: Production server
+  - url: https://api-dev.boardservice.com/v1
+    description: Development server
+
+tags:
+  - name: Auth
+    description: Аутентификация и регистрация
+  - name: Boards
+    description: Управление досками
+  - name: Stickers
+    description: Управление стикерами
+  - name: Sharing
+    description: Управление доступом к доскам
+
+paths:
+  # Auth endpoints
+  /auth/register:
+    $ref: 'auth.yaml#/paths/~1auth~1register'
+  /auth/login:
+    $ref: 'auth.yaml#/paths/~1auth~1login'
+
+  # Board endpoints
+  /boards:
+    $ref: 'boards.yaml#/paths/~1boards'
+  /boards/{boardId}:
+    $ref: 'boards.yaml#/paths/~1boards~1{boardId}'
+
+  # Sticker endpoints
+  /boards/{boardId}/stickers:
+    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers'
+  /boards/{boardId}/stickers/{stickerId}:
+    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}'
+  /boards/{boardId}/stickers/{stickerId}/move:
+    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1move'
+  /boards/{boardId}/stickers/{stickerId}/resize:
+    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1resize'
+  /boards/{boardId}/stickers/{stickerId}/color:
+    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1color'
+  /boards/{boardId}/stickers/{stickerId}/text:
+    $ref: 'stickers.yaml#/paths/~1boards~1{boardId}~1stickers~1{stickerId}~1text'
+
+  # Sharing endpoints
+  /boards/{boardId}/share:
+    $ref: 'sharing.yaml#/paths/~1boards~1{boardId}~1share'
+  /boards/{boardId}/share/{userId}:
+    $ref: 'sharing.yaml#/paths/~1boards~1{boardId}~1share~1{userId}'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT токен, полученный при входе/регистрации

@@ -1,0 +1,649 @@
+openapi: 3.0.3
+info:
+  title: Board Service API - Stickers
+  description: API управления стикерами для сервиса коллаборативных досок
+  version: 1.0.0
+
+servers:
+  - url: https://api.boardservice.com/v1
+    description: Production server
+
+tags:
+  - name: Stickers
+    description: Управление стикерами
+
+paths:
+  /boards/{boardId}/stickers:
+    post:
+      tags:
+        - Stickers
+      summary: Создание стикера
+      description: Добавление нового стикера на доску
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - x
+                - y
+              properties:
+                x:
+                  type: number
+                  format: float
+                  example: 100.5
+                  description: Координата X стикера на доске
+                y:
+                  type: number
+                  format: float
+                  example: 200.3
+                  description: Координата Y стикера на доске
+                width:
+                  type: number
+                  format: float
+                  minimum: 50
+                  maximum: 1000
+                  default: 200
+                  example: 200
+                  description: Ширина стикера в пикселях
+                height:
+                  type: number
+                  format: float
+                  minimum: 50
+                  maximum: 1000
+                  default: 200
+                  example: 200
+                  description: Высота стикера в пикселях
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                  default: "#FFEB3B"
+                  example: "#FFEB3B"
+                  description: Цвет стикера (hex формат)
+                text:
+                  type: string
+                  maxLength: 5000
+                  default: ""
+                  example: "Текст стикера"
+                  description: Текстовое содержимое стикера
+                zIndex:
+                  type: integer
+                  default: 0
+                  example: 1
+                  description: Z-индекс для определения порядка наложения
+      responses:
+        '201':
+          description: Стикер успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sticker'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /boards/{boardId}/stickers/{stickerId}:
+    patch:
+      tags:
+        - Stickers
+      summary: Обновление стикера
+      description: Обновление параметров стикера (координаты, размер, цвет, текст)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+        - name: stickerId
+          in: path
+          required: true
+          description: ID стикера
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                x:
+                  type: number
+                  format: float
+                  example: 150.5
+                  description: Новая координата X
+                y:
+                  type: number
+                  format: float
+                  example: 250.3
+                  description: Новая координата Y
+                width:
+                  type: number
+                  format: float
+                  minimum: 50
+                  maximum: 1000
+                  example: 250
+                  description: Новая ширина стикера
+                height:
+                  type: number
+                  format: float
+                  minimum: 50
+                  maximum: 1000
+                  example: 250
+                  description: Новая высота стикера
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                  example: "#FF5722"
+                  description: Новый цвет стикера
+                text:
+                  type: string
+                  maxLength: 5000
+                  example: "Обновленный текст"
+                  description: Новый текст стикера
+                zIndex:
+                  type: integer
+                  example: 2
+                  description: Новый z-индекс
+      responses:
+        '200':
+          description: Стикер успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sticker'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска или стикер не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Stickers
+      summary: Удаление стикера
+      description: Удаление стикера с доски
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+        - name: stickerId
+          in: path
+          required: true
+          description: ID стикера
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Стикер успешно удален
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска или стикер не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /boards/{boardId}/stickers/{stickerId}/move:
+    post:
+      tags:
+        - Stickers
+      summary: Перемещение стикера
+      description: Изменение позиции стикера на доске
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+        - name: stickerId
+          in: path
+          required: true
+          description: ID стикера
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - x
+                - y
+              properties:
+                x:
+                  type: number
+                  format: float
+                  example: 300.5
+                  description: Новая координата X
+                y:
+                  type: number
+                  format: float
+                  example: 400.3
+                  description: Новая координата Y
+      responses:
+        '200':
+          description: Стикер успешно перемещен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sticker'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска или стикер не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /boards/{boardId}/stickers/{stickerId}/resize:
+    post:
+      tags:
+        - Stickers
+      summary: Изменение размера стикера
+      description: Изменение ширины и высоты стикера
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+        - name: stickerId
+          in: path
+          required: true
+          description: ID стикера
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - width
+                - height
+              properties:
+                width:
+                  type: number
+                  format: float
+                  minimum: 50
+                  maximum: 1000
+                  example: 300
+                  description: Новая ширина стикера
+                height:
+                  type: number
+                  format: float
+                  minimum: 50
+                  maximum: 1000
+                  example: 300
+                  description: Новая высота стикера
+      responses:
+        '200':
+          description: Размер стикера успешно изменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sticker'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска или стикер не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /boards/{boardId}/stickers/{stickerId}/color:
+    post:
+      tags:
+        - Stickers
+      summary: Изменение цвета стикера
+      description: Изменение цвета фона стикера
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+        - name: stickerId
+          in: path
+          required: true
+          description: ID стикера
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - color
+              properties:
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                  example: "#4CAF50"
+                  description: Новый цвет стикера (hex формат)
+      responses:
+        '200':
+          description: Цвет стикера успешно изменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sticker'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска или стикер не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /boards/{boardId}/stickers/{stickerId}/text:
+    post:
+      tags:
+        - Stickers
+      summary: Изменение текста стикера
+      description: Обновление текстового содержимого стикера
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: ID доски
+          schema:
+            type: string
+            format: uuid
+        - name: stickerId
+          in: path
+          required: true
+          description: ID стикера
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  maxLength: 5000
+                  example: "Новый текст стикера"
+                  description: Новое текстовое содержимое
+      responses:
+        '200':
+          description: Текст стикера успешно изменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sticker'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Нет доступа к доске
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Доска или стикер не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT токен, полученный при входе/регистрации
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "VALIDATION_ERROR"
+          description: Код ошибки
+        message:
+          type: string
+          example: "Некорректные данные запроса"
+          description: Человекочитаемое описание ошибки
+        details:
+          type: object
+          description: Дополнительная информация об ошибке
+
+    Sticker:
+      type: object
+      required:
+        - stickerId
+        - boardId
+        - x
+        - y
+        - width
+        - height
+        - color
+        - createdAt
+        - updatedAt
+      properties:
+        stickerId:
+          type: string
+          format: uuid
+          example: "770e8400-e29b-41d4-a716-446655440000"
+          description: Уникальный идентификатор стикера
+        boardId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          description: ID доски, к которой относится стикер
+        x:
+          type: number
+          format: float
+          example: 100.5
+          description: Координата X стикера на доске
+        y:
+          type: number
+          format: float
+          example: 200.3
+          description: Координата Y стикера на доске
+        width:
+          type: number
+          format: float
+          example: 200
+          description: Ширина стикера в пикселях
+        height:
+          type: number
+          format: float
+          example: 200
+          description: Высота стикера в пикселях
+        color:
+          type: string
+          example: "#FFEB3B"
+          description: Цвет стикера (hex формат)
+        text:
+          type: string
+          example: "Текст стикера"
+          description: Текстовое содержимое стикера
+        zIndex:
+          type: integer
+          example: 1
+          description: Z-индекс для определения порядка наложения
+        createdBy:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          description: ID пользователя, создавшего стикер
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: Дата и время создания
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T14:25:00Z"
+          description: Дата и время последнего обновления

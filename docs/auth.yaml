@@ -1,0 +1,155 @@
+openapi: 3.0.3
+info:
+  title: Board Service API - Auth
+  description: API аутентификации для сервиса коллаборативных досок
+  version: 1.0.0
+
+servers:
+  - url: https://api.boardservice.com/v1
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Аутентификация и регистрация
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Регистрация нового пользователя
+      description: Создание нового аккаунта пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+                - password
+              properties:
+                login:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+                  example: "user@example.com"
+                  description: Уникальный логин пользователя
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 100
+                  format: password
+                  example: "SecurePass123!"
+                  description: Пароль (минимум 8 символов)
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  login:
+                    type: string
+                    example: "user@example.com"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    description: JWT токен для авторизации
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Пользователь с таким логином уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Вход в систему
+      description: Аутентификация пользователя и получение токена
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+                - password
+              properties:
+                login:
+                  type: string
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "SecurePass123!"
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  login:
+                    type: string
+                    example: "user@example.com"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    description: JWT токен для авторизации
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    example: "2024-01-16T10:30:00Z"
+        '401':
+          description: Неверный логин или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: "VALIDATION_ERROR"
+          description: Код ошибки
+        message:
+          type: string
+          example: "Некорректные данные запроса"
+          description: Человекочитаемое описание ошибки
+        details:
+          type: object
+          description: Дополнительная информация об ошибке
+          example:
+            field: "login"
+            reason: "Логин уже занят"
