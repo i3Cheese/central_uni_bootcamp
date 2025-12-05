@@ -28,8 +28,14 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - title
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 title:
                   type: string
                   minLength: 1
@@ -199,7 +205,14 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - requesterId
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 title:
                   type: string
                   minLength: 1
@@ -263,6 +276,20 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requesterId
+              properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
       responses:
         '204':
           description: Доска успешно удалена
@@ -463,6 +490,7 @@ components:
         - boardId
         - x
         - y
+        - z
         - width
         - height
         - color
@@ -485,6 +513,11 @@ components:
           type: number
           format: float
           example: 200.3
+        z:
+          type: number
+          format: float
+          example: 0
+          description: Координата Z стикера (глубина/высота в 3D пространстве)
         width:
           type: number
           format: float

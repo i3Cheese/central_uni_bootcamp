@@ -36,9 +36,15 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - userId
                 - permission
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 userId:
                   type: string
                   format: uuid
@@ -187,8 +193,14 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - permission
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 permission:
                   type: string
                   enum: [view, edit, admin]
@@ -265,6 +277,20 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requesterId
+              properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
       responses:
         '204':
           description: Доступ успешно отозван

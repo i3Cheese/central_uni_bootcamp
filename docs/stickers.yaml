@@ -36,9 +36,16 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - x
                 - y
+                - z
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 x:
                   type: number
                   format: float
@@ -49,6 +56,12 @@ paths:
                   format: float
                   example: 200.3
                   description: Координата Y стикера на доске
+                z:
+                  type: number
+                  format: float
+                  default: 0
+                  example: 0
+                  description: Координата Z стикера (глубина/высота в 3D пространстве)
                 width:
                   type: number
                   format: float
@@ -143,7 +156,14 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - requesterId
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 x:
                   type: number
                   format: float
@@ -154,6 +174,11 @@ paths:
                   format: float
                   example: 250.3
                   description: Новая координата Y
+                z:
+                  type: number
+                  format: float
+                  example: 10.0
+                  description: Новая координата Z (глубина/высота)
                 width:
                   type: number
                   format: float
@@ -236,6 +261,20 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requesterId
+              properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
       responses:
         '204':
           description: Стикер успешно удален
@@ -288,9 +327,16 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - x
                 - y
+                - z
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 x:
                   type: number
                   format: float
@@ -301,6 +347,11 @@ paths:
                   format: float
                   example: 400.3
                   description: Новая координата Y
+                z:
+                  type: number
+                  format: float
+                  example: 5.0
+                  description: Новая координата Z (глубина/высота)
       responses:
         '200':
           description: Стикер успешно перемещен
@@ -363,9 +414,15 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - width
                 - height
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 width:
                   type: number
                   format: float
@@ -442,8 +499,14 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - color
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
@@ -511,8 +574,14 @@ paths:
             schema:
               type: object
               required:
+                - requesterId
                 - text
               properties:
+                requesterId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                  description: ID пользователя, выполняющего запрос
                 text:
                   type: string
                   maxLength: 5000
@@ -584,6 +653,7 @@ components:
         - boardId
         - x
         - y
+        - z
         - width
         - height
         - color
@@ -610,6 +680,11 @@ components:
           format: float
           example: 200.3
           description: Координата Y стикера на доске
+        z:
+          type: number
+          format: float
+          example: 0
+          description: Координата Z стикера (глубина/высота в 3D пространстве)
         width:
           type: number
           format: float
