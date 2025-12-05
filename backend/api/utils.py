@@ -8,7 +8,7 @@ from models.user import User
 
 
 async def get_user_permission(
-    user: User, board: Board, db: AsyncSession
+    user: User, board: Board, db: AsyncSession, accesses_cache: dict[int, Access] | None = None
 ) -> Permission | None:
     """
     Определяет права пользователя на доску.
@@ -17,6 +17,7 @@ async def get_user_permission(
         user: Пользователь
         board: Доска
         db: Сессия базы данных
+        accesses_cache: Опциональный кэш Access по board_id для оптимизации
         
     Returns:
         Permission | None: Уровень прав или None если нет доступа
@@ -24,20 +25,23 @@ async def get_user_permission(
     if board.creator_id == user.user_id:
         return Permission.OWNER
     
-    result = await db.execute(
-        select(Access).where(
-            Access.board_id == board.board_id,
-            Access.user_id == user.user_id,
+    # Используем кэш если передан, иначе делаем запрос
+    if accesses_cache is not None:
+        access = accesses_cache.get(board.board_id)
+    else:
+        result = await db.execute(
+            select(Access).where(
+                Access.board_id == board.board_id,
+                Access.user_id == user.user_id,
+            )
         )
-    )
-    access = result.scalar_one_or_none()
+        access = result.scalar_one_or_none()
     
     if access:
-
-        try:
-            return Permission(access.permission)
-        except ValueError:
-            return None
+        raw_perm = access.permission
+        if raw_perm in Permission._value2member_map_:
+            return Permission(raw_perm)
+        return None
     
     if board.is_public:
         return Permission.VIEW

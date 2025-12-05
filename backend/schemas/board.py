@@ -58,3 +58,36 @@ class BoardResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
+
+class BoardSummary(BaseModel):
+    """Схема краткой информации о доске для списка."""
+
+    boardId: int = Field(..., description="Уникальный идентификатор доски", examples=[1])
+    title: str = Field(..., description="Название доски", examples=["Проектирование системы"])
+    description: str | None = Field(
+        default=None, description="Описание доски", examples=["Доска для обсуждения архитектуры"]
+    )
+    ownerId: int = Field(..., description="ID владельца доски", examples=[1])
+    ownerName: str | None = Field(
+        default=None, description="Логин владельца доски", examples=["user@example.com"]
+    )
+    permission: str = Field(
+        ...,
+        description="Права текущего пользователя на доску",
+        examples=["owner"],
+    )
+    stickerCount: int = Field(
+        default=0, description="Количество стикеров на доске", examples=[15]
+    )
+    updatedAt: datetime = Field(
+        ..., description="Дата и время последнего обновления", examples=["2024-01-15T14:25:00Z"]
+    )
+
+    model_config = {"from_attributes": True}
+
+
+class BoardListResponse(BaseModel):
+    """Схема ответа со списком досок."""
+
+    boards: list[BoardSummary] = Field(..., description="Список досок")
+
