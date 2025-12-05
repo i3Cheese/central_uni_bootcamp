@@ -37,7 +37,7 @@ paths:
               required:
                 - x
                 - y
-                - z
+                - layerLevel
               properties:
                 x:
                   type: number
@@ -49,12 +49,6 @@ paths:
                   format: float
                   example: 200.3
                   description: Координата Y стикера на доске
-                z:
-                  type: number
-                  format: float
-                  default: 0
-                  example: 0
-                  description: Координата Z стикера (глубина/высота в 3D пространстве)
                 width:
                   type: number
                   format: float
@@ -83,11 +77,11 @@ paths:
                   default: ""
                   example: "Текст стикера"
                   description: Текстовое содержимое стикера
-                zIndex:
+                layerLevel:
                   type: integer
                   default: 0
                   example: 1
-                  description: Z-индекс для определения порядка наложения
+                  description: Уровень слоя для определения порядка наложения
       responses:
         '201':
           description: Стикер успешно создан
@@ -158,11 +152,6 @@ paths:
                   format: float
                   example: 250.3
                   description: Новая координата Y
-                z:
-                  type: number
-                  format: float
-                  example: 10.0
-                  description: Новая координата Z (глубина/высота)
                 width:
                   type: number
                   format: float
@@ -187,10 +176,10 @@ paths:
                   maxLength: 5000
                   example: "Обновленный текст"
                   description: Новый текст стикера
-                zIndex:
+                layerLevel:
                   type: integer
                   example: 2
-                  description: Новый z-индекс
+                  description: Новый уровень слоя
       responses:
         '200':
           description: Стикер успешно обновлен
@@ -302,7 +291,6 @@ paths:
               required:
                 - x
                 - y
-                - z
               properties:
                 x:
                   type: number
@@ -314,11 +302,6 @@ paths:
                   format: float
                   example: 400.3
                   description: Новая координата Y
-                z:
-                  type: number
-                  format: float
-                  example: 5.0
-                  description: Новая координата Z (глубина/высота)
       responses:
         '200':
           description: Стикер успешно перемещен
@@ -596,7 +579,7 @@ components:
         - boardId
         - x
         - y
-        - z
+        - layerLevel
         - width
         - height
         - color
@@ -621,11 +604,6 @@ components:
           format: float
           example: 200.3
           description: Координата Y стикера на доске
-        z:
-          type: number
-          format: float
-          example: 0
-          description: Координата Z стикера (глубина/высота в 3D пространстве)
         width:
           type: number
           format: float
@@ -644,10 +622,10 @@ components:
           type: string
           example: "Текст стикера"
           description: Текстовое содержимое стикера
-        zIndex:
+        layerLevel:
           type: integer
           example: 1
-          description: Z-индекс для определения порядка наложения
+          description: Уровень слоя для определения порядка наложения
         createdBy:
           type: integer
           example: 1

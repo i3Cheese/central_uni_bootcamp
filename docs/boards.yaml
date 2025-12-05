@@ -449,7 +449,7 @@ components:
         - boardId
         - x
         - y
-        - z
+        - layerLevel
         - width
         - height
         - color
@@ -470,11 +470,6 @@ components:
           type: number
           format: float
           example: 200.3
-        z:
-          type: number
-          format: float
-          example: 0
-          description: Координата Z стикера (глубина/высота в 3D пространстве)
         width:
           type: number
           format: float
@@ -489,9 +484,10 @@ components:
         text:
           type: string
           example: "Текст стикера"
-        zIndex:
+        layerLevel:
           type: integer
           example: 1
+          description: Уровень слоя для определения порядка наложения
         createdBy:
           type: integer
           example: 1
