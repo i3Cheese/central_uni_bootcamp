@@ -546,27 +546,29 @@ export default function BoardPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-600">New Sticker Color:</span>
-            <div className="flex gap-1">
-              {colors.map((color) => (
-                <button
-                  key={color.value}
-                  onClick={() => setSelectedColor(color.value)}
-                  className={`w-6 h-6 rounded-full ${color.value} border-2 ${
-                    selectedColor === color.value ? color.border : 'border-transparent'
-                  } transition-all hover:scale-110`}
-                  title={color.name}
-                />
-              ))}
-            </div>
             {canEdit && (
-              <button
-                onClick={handleAddSticker}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-              >
-                <span>+</span>
-                <span>Add Sticker</span>
-              </button>
+              <>
+                <span className="text-sm text-gray-600">New Sticker Color:</span>
+                <div className="flex gap-1">
+                  {colors.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setSelectedColor(color.value)}
+                      className={`w-6 h-6 rounded-full ${color.value} border-2 ${
+                        selectedColor === color.value ? color.border : 'border-transparent'
+                      } transition-all hover:scale-110`}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={handleAddSticker}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                >
+                  <span>+</span>
+                  <span>Add Sticker</span>
+                </button>
+              </>
             )}
             <div className="text-xs text-gray-500 ml-2">
               {stickers.length} sticker{stickers.length !== 1 ? 's' : ''}

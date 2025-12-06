@@ -81,7 +81,7 @@ export default function ResizableSticker({
     e.preventDefault();
     e.stopPropagation();
     
-    if (isEditing || isResizing || showColorPicker) return;
+    if (!onDragStop || isEditing || isResizing || showColorPicker) return;
     
     setIsDragging(true);
     
@@ -166,13 +166,15 @@ export default function ResizableSticker({
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'grabbing';
   }, [id, isEditing, isResizing, onDragStop, position, showColorPicker]);
+  
+  const canDrag = !!onDragStop;
 
   // ===== RESIZING FUNCTIONS =====
   const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (isEditing || isDragging || showColorPicker) return;
+    if (!onResizeStop || isEditing || isDragging || showColorPicker) return;
     
     setIsResizing(true);
     
@@ -256,6 +258,10 @@ export default function ResizableSticker({
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'nwse-resize';
   }, [id, isEditing, isDragging, size, onResizeStop, showColorPicker]);
+  
+  const canResize = !!onResizeStop;
+  const canEditText = !!onTextChange;
+  const canChangeColor = !!onColorChange;
 
   // Clean up on unmount
   useEffect(() => {
@@ -304,7 +310,7 @@ export default function ResizableSticker({
   return (
     <div
       ref={stickerRef}
-      className={`absolute z-10 ${isDragging ? 'cursor-grabbing' : 'cursor-move'} select-none`}
+      className={`absolute z-10 ${isDragging ? 'cursor-grabbing' : canDrag ? 'cursor-move' : 'cursor-default'} select-none`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -319,16 +325,16 @@ export default function ResizableSticker({
       }`}>
         {/* Drag Handle - Top Bar */}
         <div
-          className="pb-3 mb-3 border-b border-gray-300/50 cursor-move active:cursor-grabbing group/drag"
-          onMouseDown={handleDragStart}
-          onTouchStart={handleDragStart}
+          className={`pb-3 mb-3 border-b ${canDrag ? 'border-gray-300/50 cursor-move active:cursor-grabbing group/drag' : 'border-gray-200/30 cursor-default opacity-60'}`}
+          onMouseDown={canDrag ? handleDragStart : undefined}
+          onTouchStart={canDrag ? handleDragStart : undefined}
         >
           <div className="flex items-center justify-between">
             
             <div className="flex items-center gap-2">
-              <div className="w-8 h-1.5 bg-gray-400/70 rounded-full group-hover/drag:bg-blue-500/70 transition-colors"></div>
-              <div className="w-1 h-1 rounded-full bg-gray-400/50 group-hover/drag:bg-blue-500/50"></div>
-              <div className="w-1 h-1 rounded-full bg-gray-400/50 group-hover/drag:bg-blue-500/50"></div>
+              <div className={`w-8 h-1.5 rounded-full transition-colors ${canDrag ? 'bg-gray-400/70 group-hover/drag:bg-blue-500/70' : 'bg-gray-300/40'}`}></div>
+              <div className={`w-1 h-1 rounded-full ${canDrag ? 'bg-gray-400/50 group-hover/drag:bg-blue-500/50' : 'bg-gray-300/30'}`}></div>
+              <div className={`w-1 h-1 rounded-full ${canDrag ? 'bg-gray-400/50 group-hover/drag:bg-blue-500/50' : 'bg-gray-300/30'}`}></div>
             </div>
           </div>
         </div>
@@ -339,21 +345,23 @@ export default function ResizableSticker({
             ref={textareaRef}
             value={text}
             onChange={handleTextChange}
-            onFocus={() => setIsEditing(true)}
+            onFocus={() => canEditText && setIsEditing(true)}
             onBlur={() => setIsEditing(false)}
+            readOnly={!canEditText}
             className={`w-full bg-transparent border-none outline-none resize-none placeholder:text-gray-500/70 transition-all ${
               isEditing 
                 ? 'bg-white/30 rounded-lg p-2 ring-2 ring-blue-400/50' 
                 : ''
-            } ${isDragging || isResizing ? 'pointer-events-none opacity-80' : 'cursor-text'}`}
+            } ${isDragging || isResizing ? 'pointer-events-none opacity-80' : canEditText ? 'cursor-text' : 'cursor-default'}`}
             rows={calculateRows()}
-            placeholder="Click to edit text..."
+            placeholder={canEditText ? "Click to edit text..." : ""}
             style={{
               minHeight: `${Math.max(50, size.height - 100)}px`,
             }}
           />
           
           {/* Resize Handle - Bottom Right Corner */}
+          {canResize && (
           <div
             className="absolute bottom-0 right-0 w-8 h-8 cursor-nwse-resize group/resize"
             onMouseDown={handleResizeStart}
@@ -383,6 +391,7 @@ export default function ResizableSticker({
               </div>
             )}
           </div>
+          )}
         </div>
         
         {/* Controls */}
@@ -390,6 +399,7 @@ export default function ResizableSticker({
           
           <div className="flex gap-1 relative">
             {/* Color Picker Button */}
+            {canChangeColor && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -401,13 +411,14 @@ export default function ResizableSticker({
               
               <span>Change Color</span>
             </button>
+            )}
             
             
             
             
             
             {/* Color Picker Popup */}
-            {showColorPicker && (
+            {canChangeColor && showColorPicker && (
               <div 
                 ref={colorPickerRef}
                 className="absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-xl border border-gray-200 p-3 z-50 w-64"
