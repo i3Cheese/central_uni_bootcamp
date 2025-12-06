@@ -71,12 +71,12 @@ export default function AuthPage() {
       }
 
       const data: LoginResponse = await response.json();
-      
+
       // Сохраняем токен в localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", String(data.userId));
       localStorage.setItem("userLogin", data.login);
-      
+
       // Перенаправляем на страницу досок
       router.push("/boards");
     } catch (err) {
@@ -152,9 +152,9 @@ export default function AuthPage() {
           {/* Register Link */}
           <Link
             href="/auth/register"
-            className="w-full h-9 bg-[#dcdcdc] text-[#666666] text-sm hover:bg-[#c8c8c8] transition-colors flex items-center justify-center"
+            className="mt-5 text-[#666666] text-sm text-center hover:underline"
           >
-            Регистрация
+            Еще нет аккаунта? Зарегистрироваться
           </Link>
         </div>
       </main>
