@@ -16,7 +16,9 @@ class Sticker(Base):
     __tablename__ = "stickers"
 
     sticker_id: Mapped[int] = mapped_column("sticker_id", primary_key=True, index=True)
-    board_id: Mapped[int] = mapped_column(ForeignKey("boards.board_id"), nullable=False)
+    board_id: Mapped[int] = mapped_column(
+        ForeignKey("boards.board_id", ondelete="CASCADE"), nullable=False
+    )
     created_by: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
     x: Mapped[float] = mapped_column(Float, nullable=False)
     y: Mapped[float] = mapped_column(Float, nullable=False)

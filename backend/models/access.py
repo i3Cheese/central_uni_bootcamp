@@ -19,7 +19,9 @@ class Access(Base):
 
     access_id: Mapped[int] = mapped_column("access_id", primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
-    board_id: Mapped[int] = mapped_column(ForeignKey("boards.board_id"), nullable=False)
+    board_id: Mapped[int] = mapped_column(
+        ForeignKey("boards.board_id", ondelete="CASCADE"), nullable=False
+    )
     permission: Mapped[str] = mapped_column(
         String,
         nullable=False,

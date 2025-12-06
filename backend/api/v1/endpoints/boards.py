@@ -80,15 +80,17 @@ async def get_boards(
             description="Фильтр досок: own (только свои), shared (только расшаренные), all (все)",
         ),
         page: int = Query(default=1, ge=1, description="Номер страницы"),
-        limit: int = Query(default=20, ge=1, le=100, description="Количество элементов на странице"),
+        limit: int = Query(default=20, ge=1, le=100,
+                           description="Количество элементов на странице"),
         sortBy: Literal["createdAt", "updatedAt", "title"] = Query(
             default="updatedAt", description="Поле для сортировки"
         ),
-        sortOrder: Literal["asc", "desc"] = Query(default="desc", description="Порядок сортировки"),
+        sortOrder: Literal["asc", "desc"] = Query(
+            default="desc", description="Порядок сортировки"),
 ) -> BoardListResponse:
     """
     Получение списка досок с фильтрацией, пагинацией и сортировкой.
-    
+
     - filter: Фильтр досок (own/shared/all)
     - page: Номер страницы (начиная с 1)
     - limit: Количество элементов на странице (1-100)
@@ -97,7 +99,8 @@ async def get_boards(
     """
     # Строим базовый запрос в зависимости от фильтра
     if board_filter == "own":
-        base_query = select(Board).where(Board.creator_id == current_user.user_id)
+        base_query = select(Board).where(
+            Board.creator_id == current_user.user_id)
     elif board_filter == "shared":
         base_query = (
             select(Board)
@@ -158,7 +161,8 @@ async def get_boards(
         Access.user_id == current_user.user_id,
     )
     accesses_result = await db.execute(accesses_query)
-    accesses_cache = {access.board_id: access for access in accesses_result.scalars().all()}
+    accesses_cache = {
+        access.board_id: access for access in accesses_result.scalars().all()}
 
     # Подсчитываем стикеры одним запросом (GROUP BY)
     sticker_counts_query = (
@@ -208,7 +212,7 @@ async def get_board(
 ) -> BoardDetail:
     """
     Получение доски по ID со всеми стикерами.
-    
+
     - board_id: ID доски
     - Возвращает полную информацию о доске и все стикеры
     """
@@ -277,18 +281,27 @@ async def update_board(
     - backgroundColor: Новый цвет фона доски в hex формате (опционально)
     """
 
-    board, permission = board_with_edit
+    board, _ = board_with_edit
 
-    board.title = new_data.title
-    board.description = new_data.description
-    board.background_color = new_data.backgroundColor
+    if new_data.title is not None:
+        board.title = new_data.title
+    if new_data.description is not None:
+        board.description = new_data.description
+    if new_data.backgroundColor is not None:
+        board.background_color = new_data.backgroundColor
 
     await db.commit()
     await db.refresh(board, ["creator"])
 
+    if board.creator is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Board creator not found",
+        )
+
     return BoardResponse(
         boardId=board.board_id,
-        title=board.title,
+        title=board.title or "",
         description=board.description,
         ownerId=board.creator_id,
         ownerName=board.creator.login,
@@ -313,9 +326,7 @@ async def delete_board(
 
     - board_id: ID доски
     """
-    board, permission = board_with_owner
+    board, _ = board_with_owner
 
     await db.delete(board)
     await db.commit()
-
-    return

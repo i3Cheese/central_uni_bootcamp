@@ -185,7 +185,7 @@ paths:
           schema:
             type: integer
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -196,14 +196,17 @@ paths:
                   minLength: 1
                   maxLength: 200
                   example: "Обновленное название"
+                  description: Название доски (опционально)
                 description:
                   type: string
                   maxLength: 1000
                   example: "Обновленное описание"
+                  description: Описание доски (опционально)
                 backgroundColor:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
                   example: "#F0F0F0"
+                  description: Цвет фона доски в hex формате (опционально)
       responses:
         '200':
           description: Доска успешно обновлена
@@ -250,13 +253,6 @@ paths:
           description: ID доски
           schema:
             type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties: {}
       responses:
         '204':
           description: Доска успешно удалена

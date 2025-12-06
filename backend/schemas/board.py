@@ -147,8 +147,8 @@ class BoardDetail(BaseModel):
 class BoardUpdate(BaseModel):
     """Схема запроса на обновление доски."""
 
-    title: str = Field(
-        ...,
+    title: str | None = Field(
+        default=None,
         min_length=1,
         max_length=200,
         description="Обновленное название доски",
