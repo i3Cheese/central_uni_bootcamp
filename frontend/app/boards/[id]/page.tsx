@@ -1,11 +1,11 @@
 // app/board/[id]/page.tsx
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import ResizableSticker from '../../components/sticker';
-import { HEADER_PADDING_X } from '../../constants/borders';
+import { useState, useRef, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import ResizableSticker from "../../components/sticker";
+import { HEADER_PADDING_X } from "../../constants/borders";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -46,13 +46,13 @@ interface BoardData {
 // SAMPLE API RESPONSE FOR DEVELOPMENT/TESTING
 const SAMPLE_BOARD_RESPONSE: BoardData = {
   boardId: 1,
-  title: 'My First Board',
-  description: 'A sample board for testing',
+  title: "My First Board",
+  description: "A sample board for testing",
   ownerId: 123,
-  ownerName: 'John Doe',
-  backgroundColor: '#F5F5F5',
-  createdAt: '2024-01-15T10:30:00Z',
-  updatedAt: '2024-01-15T14:25:00Z',
+  ownerName: "John Doe",
+  backgroundColor: "#F5F5F5",
+  createdAt: "2024-01-15T10:30:00Z",
+  updatedAt: "2024-01-15T14:25:00Z",
   stickers: [
     {
       stickerId: 1,
@@ -61,12 +61,12 @@ const SAMPLE_BOARD_RESPONSE: BoardData = {
       y: 100,
       width: 256,
       height: 128,
-      color: '#FFEB3B',
-      text: 'Welcome to the sticker board! Double click to edit.',
+      color: "#FFEB3B",
+      text: "Welcome to the sticker board! Double click to edit.",
       layerLevel: 1,
       createdBy: 123,
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T14:25:00Z'
+      createdAt: "2024-01-15T10:30:00Z",
+      updatedAt: "2024-01-15T14:25:00Z",
     },
     {
       stickerId: 2,
@@ -75,12 +75,12 @@ const SAMPLE_BOARD_RESPONSE: BoardData = {
       y: 150,
       width: 256,
       height: 128,
-      color: '#2196F3',
-      text: 'Drag the top bar to move stickers around',
+      color: "#2196F3",
+      text: "Drag the top bar to move stickers around",
       layerLevel: 2,
       createdBy: 123,
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T14:25:00Z'
+      createdAt: "2024-01-15T10:30:00Z",
+      updatedAt: "2024-01-15T14:25:00Z",
     },
     {
       stickerId: 3,
@@ -89,15 +89,15 @@ const SAMPLE_BOARD_RESPONSE: BoardData = {
       y: 300,
       width: 256,
       height: 128,
-      color: '#4CAF50',
-      text: 'Click + button to add more stickers',
+      color: "#4CAF50",
+      text: "Click + button to add more stickers",
       layerLevel: 3,
       createdBy: 123,
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T14:25:00Z'
-    }
+      createdAt: "2024-01-15T10:30:00Z",
+      updatedAt: "2024-01-15T14:25:00Z",
+    },
   ],
-  permission: 'owner'
+  permission: "owner",
 };
 
 export default function BoardPage() {
@@ -107,7 +107,7 @@ export default function BoardPage() {
 
   const [board, setBoard] = useState<BoardData | null>(null);
   const [stickers, setStickers] = useState<StickerData[]>([]);
-  const [selectedColor, setSelectedColor] = useState('bg-yellow-200');
+  const [selectedColor, setSelectedColor] = useState("bg-yellow-200");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useSampleData, setUseSampleData] = useState(false);
@@ -120,57 +120,57 @@ export default function BoardPage() {
   const canEdit = board?.permission === "edit" || board?.permission === "owner";
 
   const colors = [
-    { name: 'Yellow', value: 'bg-yellow-200', border: 'border-yellow-300' },
-    { name: 'Blue', value: 'bg-blue-200', border: 'border-blue-300' },
-    { name: 'Green', value: 'bg-green-200', border: 'border-green-300' },
-    { name: 'Pink', value: 'bg-pink-200', border: 'border-pink-300' },
-    { name: 'Purple', value: 'bg-purple-200', border: 'border-purple-300' },
-    { name: 'Red', value: 'bg-red-200', border: 'border-red-300' },
-    { name: 'Cyan', value: 'bg-cyan-200', border: 'border-cyan-300' },
-    { name: 'Orange', value: 'bg-orange-200', border: 'border-orange-300' },
+    { name: "Yellow", value: "bg-yellow-200", border: "border-yellow-300" },
+    { name: "Blue", value: "bg-blue-200", border: "border-blue-300" },
+    { name: "Green", value: "bg-green-200", border: "border-green-300" },
+    { name: "Pink", value: "bg-pink-200", border: "border-pink-300" },
+    { name: "Purple", value: "bg-purple-200", border: "border-purple-300" },
+    { name: "Red", value: "bg-red-200", border: "border-red-300" },
+    { name: "Cyan", value: "bg-cyan-200", border: "border-cyan-300" },
+    { name: "Orange", value: "bg-orange-200", border: "border-orange-300" },
   ];
 
   // Convert hex color to Tailwind class
   const hexToTailwind = (hexColor: string): string => {
     const colorMap: Record<string, string> = {
-      '#FFEB3B': 'bg-yellow-200',
-      '#2196F3': 'bg-blue-200',
-      '#4CAF50': 'bg-green-200',
-      '#E91E63': 'bg-pink-200',
-      '#9C27B0': 'bg-purple-200',
-      '#F44336': 'bg-red-200',
-      '#00BCD4': 'bg-cyan-200',
-      '#FF9800': 'bg-orange-200',
-      '#FFFFFF': 'bg-white',
-      '#000000': 'bg-gray-800',
-      '#F5F5F5': 'bg-gray-50',
+      "#FFEB3B": "bg-yellow-200",
+      "#2196F3": "bg-blue-200",
+      "#4CAF50": "bg-green-200",
+      "#E91E63": "bg-pink-200",
+      "#9C27B0": "bg-purple-200",
+      "#F44336": "bg-red-200",
+      "#00BCD4": "bg-cyan-200",
+      "#FF9800": "bg-orange-200",
+      "#FFFFFF": "bg-white",
+      "#000000": "bg-gray-800",
+      "#F5F5F5": "bg-gray-50",
     };
 
-    return colorMap[hexColor.toUpperCase()] || 'bg-yellow-200';
+    return colorMap[hexColor.toUpperCase()] || "bg-yellow-200";
   };
 
   // Convert Tailwind class to hex color
   const tailwindToHex = (tailwindClass: string): string => {
     const colorMap: Record<string, string> = {
-      'bg-yellow-200': '#FFEB3B',
-      'bg-blue-200': '#2196F3',
-      'bg-green-200': '#4CAF50',
-      'bg-pink-200': '#E91E63',
-      'bg-purple-200': '#9C27B0',
-      'bg-red-200': '#F44336',
-      'bg-cyan-200': '#00BCD4',
-      'bg-orange-200': '#FF9800',
-      'bg-white': '#FFFFFF',
-      'bg-gray-800': '#000000',
-      'bg-gray-50': '#F5F5F5',
+      "bg-yellow-200": "#FFEB3B",
+      "bg-blue-200": "#2196F3",
+      "bg-green-200": "#4CAF50",
+      "bg-pink-200": "#E91E63",
+      "bg-purple-200": "#9C27B0",
+      "bg-red-200": "#F44336",
+      "bg-cyan-200": "#00BCD4",
+      "bg-orange-200": "#FF9800",
+      "bg-white": "#FFFFFF",
+      "bg-gray-800": "#000000",
+      "bg-gray-50": "#F5F5F5",
     };
 
-    return colorMap[tailwindClass] || '#FFEB3B';
+    return colorMap[tailwindClass] || "#FFEB3B";
   };
 
   // Convert API stickers to component format
   const convertApiStickers = (apiStickers: any[]): StickerData[] => {
-    return apiStickers.map(sticker => ({
+    return apiStickers.map((sticker) => ({
       id: sticker.stickerId.toString(),
       text: sticker.text,
       position: { x: sticker.x, y: sticker.y },
@@ -181,7 +181,7 @@ export default function BoardPage() {
 
   // Load sample data for development/testing
   const loadSampleData = () => {
-    console.log('Loading sample data for development...');
+    console.log("Loading sample data for development...");
     setBoard(SAMPLE_BOARD_RESPONSE);
     setStickers(convertApiStickers(SAMPLE_BOARD_RESPONSE.stickers));
     setUseSampleData(true);
@@ -191,7 +191,7 @@ export default function BoardPage() {
   // Fetch board data from API
   const fetchBoardFromApi = async () => {
     if (!boardId) {
-      setError('Board ID is missing');
+      setError("Board ID is missing");
       setIsLoading(false);
       return;
     }
@@ -200,62 +200,63 @@ export default function BoardPage() {
       setIsLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        setError('Not authenticated');
+        setError("Not authenticated");
         setIsLoading(false);
         return;
       }
 
       const response = await fetch(`${API_URL}/api/v1/boards/${boardId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         // Добавляем mode для лучшей обработки CORS ошибок
-        mode: 'cors',
+        mode: "cors",
       });
 
       if (response.status === 401) {
-        localStorage.removeItem('token');
-        setError('Session expired. Please login again.');
+        localStorage.removeItem("token");
+        setError("Session expired. Please login again.");
         setIsLoading(false);
         return;
       }
 
       if (response.status === 403) {
-        setError('You do not have access to this board');
+        setError("You do not have access to this board");
         setIsLoading(false);
         return;
       }
 
       if (response.status === 404) {
-        setError('Board not found');
+        setError("Board not found");
         setIsLoading(false);
         return;
       }
 
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+        throw new Error(
+          `API returned ${response.status}: ${response.statusText}`,
+        );
       }
 
       const boardData: BoardData = await response.json();
       setBoard(boardData);
       setStickers(convertApiStickers(boardData.stickers));
       setUseSampleData(false);
-
     } catch (err) {
-      console.error('API call failed:', err);
-      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+      console.error("API call failed:", err);
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
         setError(
           `Cannot connect to backend at ${API_URL}. ` +
-          `Make sure the backend is running. ` +
-          `Check: 1) Backend is running (docker-compose up or uvicorn), ` +
-          `2) CORS is configured for this origin, ` +
-          `3) API_URL is correct in .env`
+            `Make sure the backend is running. ` +
+            `Check: 1) Backend is running (docker-compose up or uvicorn), ` +
+            `2) CORS is configured for this origin, ` +
+            `3) API_URL is correct in .env`,
         );
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to load board');
+        setError(err instanceof Error ? err.message : "Failed to load board");
       }
     } finally {
       setIsLoading(false);
@@ -264,36 +265,41 @@ export default function BoardPage() {
 
   // Load user login from localStorage
   useEffect(() => {
-    const login = localStorage.getItem('userLogin');
+    const login = localStorage.getItem("userLogin");
     setUserLogin(login);
   }, []);
 
   // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
         setShowUserMenu(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userLogin');
-    router.push('/auth');
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userLogin");
+    router.push("/auth");
   };
 
   // Update page title
   useEffect(() => {
     if (board) {
-      document.title = board.title ? `Mirumir - ${board.title}` : "Mirumir - Доска";
+      document.title = board.title
+        ? `Mirumir - ${board.title}`
+        : "Mirumir - Доска";
     } else {
       document.title = "Mirumir - Загрузка доски...";
     }
@@ -322,7 +328,7 @@ export default function BoardPage() {
     if (useSampleData) {
       const newSticker: StickerData = {
         id: `sticker-${Date.now()}`,
-        text: 'Click to edit this text...',
+        text: "Click to edit this text...",
         position: { x, y },
         size: { width: 256, height: 128 },
         color: selectedColor,
@@ -332,95 +338,108 @@ export default function BoardPage() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_URL}/api/v1/boards/${boardId}/stickers`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            x,
+            y,
+            width: 256,
+            height: 128,
+            color: hexColor,
+            text: "Click to edit this text...",
+            layerLevel: 0,
+          }),
         },
-        body: JSON.stringify({
-          x,
-          y,
-          width: 256,
-          height: 128,
-          color: hexColor,
-          text: 'Click to edit this text...',
-          layerLevel: 0,
-        }),
-      });
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to create sticker');
+        throw new Error("Failed to create sticker");
       }
 
       const newSticker = await response.json();
       const convertedSticker: StickerData = {
         id: newSticker.stickerId.toString(),
-        text: newSticker.text || '',
+        text: newSticker.text || "",
         position: { x: newSticker.x, y: newSticker.y },
-        size: { width: newSticker.width || 256, height: newSticker.height || 128 },
+        size: {
+          width: newSticker.width || 256,
+          height: newSticker.height || 128,
+        },
         color: hexToTailwind(newSticker.color),
       };
 
       setStickers([...stickers, convertedSticker]);
     } catch (err) {
-      console.error('Failed to create sticker:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create sticker');
+      console.error("Failed to create sticker:", err);
+      setError(err instanceof Error ? err.message : "Failed to create sticker");
     }
   };
 
   const handleTextChange = async (id: string, text: string) => {
-    setStickers(stickers.map(sticker =>
-      sticker.id === id ? { ...sticker, text } : sticker
-    ));
+    setStickers(
+      stickers.map((sticker) =>
+        sticker.id === id ? { ...sticker, text } : sticker,
+      ),
+    );
 
     if (useSampleData) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
 
-      const sticker = stickers.find(s => s.id === id);
+      const sticker = stickers.find((s) => s.id === id);
       if (!sticker) return;
 
       await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text,
         }),
       });
     } catch (err) {
-      console.error('Failed to update sticker text:', err);
+      console.error("Failed to update sticker text:", err);
     }
   };
 
-  const handleDragStop = async (id: string, position: { x: number; y: number }) => {
-    setStickers(stickers.map(sticker =>
-      sticker.id === id ? { ...sticker, position } : sticker
-    ));
+  const handleDragStop = async (
+    id: string,
+    position: { x: number; y: number },
+  ) => {
+    setStickers(
+      stickers.map((sticker) =>
+        sticker.id === id ? { ...sticker, position } : sticker,
+      ),
+    );
 
     if (useSampleData) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
 
       await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           x: position.x,
@@ -428,28 +447,33 @@ export default function BoardPage() {
         }),
       });
     } catch (err) {
-      console.error('Failed to update sticker position:', err);
+      console.error("Failed to update sticker position:", err);
     }
   };
 
-  const handleResizeStop = async (id: string, size: { width: number; height: number }) => {
-    setStickers(stickers.map(sticker =>
-      sticker.id === id ? { ...sticker, size } : sticker
-    ));
+  const handleResizeStop = async (
+    id: string,
+    size: { width: number; height: number },
+  ) => {
+    setStickers(
+      stickers.map((sticker) =>
+        sticker.id === id ? { ...sticker, size } : sticker,
+      ),
+    );
 
     if (useSampleData) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
 
       await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           width: size.width,
@@ -457,68 +481,73 @@ export default function BoardPage() {
         }),
       });
     } catch (err) {
-      console.error('Failed to update sticker size:', err);
+      console.error("Failed to update sticker size:", err);
     }
   };
 
   const handleDeleteSticker = async (id: string) => {
-    if (!confirm('Delete this sticker?')) return;
+    if (!confirm("Delete this sticker?")) return;
 
-    setStickers(stickers.filter(sticker => sticker.id !== id));
+    setStickers(stickers.filter((sticker) => sticker.id !== id));
 
     if (useSampleData) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
+      const response = await fetch(
+        `${API_URL}/api/v1/boards/${boardId}/stickers/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!response.ok && response.status !== 204) {
-        throw new Error('Failed to delete sticker');
+        throw new Error("Failed to delete sticker");
       }
     } catch (err) {
-      console.error('Failed to delete sticker:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete sticker');
+      console.error("Failed to delete sticker:", err);
+      setError(err instanceof Error ? err.message : "Failed to delete sticker");
       // Reload board to sync state
       fetchBoardFromApi();
     }
   };
 
   const handleColorChange = async (id: string, color: string) => {
-    setStickers(stickers.map(sticker =>
-      sticker.id === id ? { ...sticker, color } : sticker
-    ));
+    setStickers(
+      stickers.map((sticker) =>
+        sticker.id === id ? { ...sticker, color } : sticker,
+      ),
+    );
 
     if (useSampleData) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
 
       const hexColor = tailwindToHex(color);
 
       await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           color: hexColor,
         }),
       });
     } catch (err) {
-      console.error('Failed to update sticker color:', err);
+      console.error("Failed to update sticker color:", err);
     }
   };
 
@@ -540,13 +569,14 @@ export default function BoardPage() {
   return (
     <div
       className="relative w-full h-screen overflow-hidden"
-      style={{ backgroundColor: board?.backgroundColor || '#FFFFFF' }}
+      style={{ backgroundColor: board?.backgroundColor || "#FFFFFF" }}
     >
       {/* Development mode banner */}
       {useSampleData && (
         <div className="absolute top-20 left-0 right-0 z-40 bg-yellow-500/90 backdrop-blur-sm p-2 text-center text-sm text-white">
           <div className="max-w-7xl mx-auto">
-            <span className="font-semibold">Development Mode:</span> Using sample data.
+            <span className="font-semibold">Development Mode:</span> Using
+            sample data.
             <button
               onClick={handleRetryApi}
               className="ml-2 underline hover:no-underline"
@@ -574,15 +604,26 @@ export default function BoardPage() {
 
       {/* Controls Panel */}
       <header className="bg-white/90 backdrop-blur-sm border-b border-indigo-200/40 p-4 flex items-center">
-        <div className="flex flex-wrap items-center justify-between gap-4 w-full" style={{ paddingLeft: `${HEADER_PADDING_X}px`, paddingRight: `${HEADER_PADDING_X}px` }}>
+        <div
+          className="flex flex-wrap items-center justify-between gap-4 w-full"
+          style={{
+            paddingLeft: `${HEADER_PADDING_X}px`,
+            paddingRight: `${HEADER_PADDING_X}px`,
+          }}
+        >
           <div className="flex items-center gap-4">
-            <Link href="/boards" className="text-black text-2xl font-normal tracking-wide hover:text-indigo-600 transition-colors leading-none">
+            <Link
+              href="/boards"
+              className="text-black text-2xl font-normal tracking-wide hover:text-indigo-600 transition-colors leading-none"
+            >
               MIRUMIR
             </Link>
             {board && (
               <div className="text-sm text-slate-700">
-                / {board?.title || 'Board'}
-                {useSampleData && <span className="ml-2 text-yellow-600">(Sample Data)</span>}
+                / {board?.title || "Board"}
+                {useSampleData && (
+                  <span className="ml-2 text-yellow-600">(Sample Data)</span>
+                )}
               </div>
             )}
           </div>
@@ -591,14 +632,19 @@ export default function BoardPage() {
             <div className="flex flex-wrap items-center gap-2">
               {canEdit && (
                 <>
-                  <span className="text-sm text-slate-700">New Sticker Color:</span>
+                  <span className="text-sm text-slate-700">
+                    New Sticker Color:
+                  </span>
                   <div className="flex gap-1">
                     {colors.map((color) => (
                       <button
                         key={color.value}
                         onClick={() => setSelectedColor(color.value)}
-                        className={`w-6 h-6 rounded-full ${color.value} border-2 ${selectedColor === color.value ? color.border : 'border-transparent'
-                          } transition-all hover:scale-110`}
+                        className={`w-6 h-6 rounded-full ${color.value} border-2 ${
+                          selectedColor === color.value
+                            ? color.border
+                            : "border-transparent"
+                        } transition-all hover:scale-110`}
                         title={color.name}
                       />
                     ))}
@@ -613,7 +659,7 @@ export default function BoardPage() {
                 </>
               )}
               <div className="text-xs text-slate-500 ml-2">
-                {stickers.length} sticker{stickers.length !== 1 ? 's' : ''}
+                {stickers.length} sticker{stickers.length !== 1 ? "s" : ""}
               </div>
             </div>
             {userLogin && (
@@ -630,7 +676,12 @@ export default function BoardPage() {
                     fill="currentColor"
                     className={`transition-transform ${showUserMenu ? "rotate-180" : ""}`}
                   >
-                    <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <path
+                      d="M2 4L6 8L10 4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                    />
                   </svg>
                 </button>
 
@@ -655,10 +706,7 @@ export default function BoardPage() {
       </header>
 
       {/* Board Container */}
-      <div
-        ref={boardRef}
-        className="relative w-full h-full pt-20"
-      >
+      <div ref={boardRef} className="relative w-full h-full pt-20">
         {/* Grid Background Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,#e0e0e0_1px,transparent_1px),linear-gradient(#e0e0e0_1px,transparent_1px)] bg-[size:20px_20px] opacity-20"></div>
 
@@ -685,7 +733,9 @@ export default function BoardPage() {
             <div className="text-center text-gray-500">
               <div className="text-2xl mb-2">📋</div>
               <div className="text-lg font-medium mb-1">No stickers yet</div>
-              <div className="text-sm">Click "Add Sticker" to create your first sticker</div>
+              <div className="text-sm">
+                Click "Add Sticker" to create your first sticker
+              </div>
             </div>
           </div>
         )}

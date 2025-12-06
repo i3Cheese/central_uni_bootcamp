@@ -33,7 +33,14 @@ interface ShareListResponse {
   shares: ShareInfo[];
 }
 
-import { BORDER_LEFT, BORDER_RIGHT, BORDER_BOTTOM, BORDER_TOP, ENABLE_TOP_BORDER, HEADER_PADDING_X } from "../constants/borders";
+import {
+  BORDER_LEFT,
+  BORDER_RIGHT,
+  BORDER_BOTTOM,
+  BORDER_TOP,
+  ENABLE_TOP_BORDER,
+  HEADER_PADDING_X,
+} from "../constants/borders";
 
 export default function BoardsPage() {
   const router = useRouter();
@@ -58,7 +65,9 @@ export default function BoardsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [shareBoardId, setShareBoardId] = useState<number | null>(null);
   const [shareUserId, setShareUserId] = useState("");
-  const [sharePermission, setSharePermission] = useState<"view" | "edit">("view");
+  const [sharePermission, setSharePermission] = useState<"view" | "edit">(
+    "view",
+  );
   const [isSharing, setIsSharing] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
   const [shareSuccess, setShareSuccess] = useState<string | null>(null);
@@ -72,22 +81,31 @@ export default function BoardsPage() {
   // Получить доску для шаринга
   const getShareBoard = (): BoardSummary | null => {
     if (!shareBoardId) return null;
-    return ownBoards.find(b => b.boardId === shareBoardId) ||
-      sharedBoards.find(b => b.boardId === shareBoardId) || null;
+    return (
+      ownBoards.find((b) => b.boardId === shareBoardId) ||
+      sharedBoards.find((b) => b.boardId === shareBoardId) ||
+      null
+    );
   };
 
   // Получить доску по ID для отображения информации
   const getInfoBoard = (): BoardSummary | null => {
     if (!infoBoardId) return null;
-    return ownBoards.find(b => b.boardId === infoBoardId) ||
-      sharedBoards.find(b => b.boardId === infoBoardId) || null;
+    return (
+      ownBoards.find((b) => b.boardId === infoBoardId) ||
+      sharedBoards.find((b) => b.boardId === infoBoardId) ||
+      null
+    );
   };
 
   // Получить доску для удаления
   const getDeleteBoard = (): BoardSummary | null => {
     if (!deleteBoardId) return null;
-    return ownBoards.find(b => b.boardId === deleteBoardId) ||
-      sharedBoards.find(b => b.boardId === deleteBoardId) || null;
+    return (
+      ownBoards.find((b) => b.boardId === deleteBoardId) ||
+      sharedBoards.find((b) => b.boardId === deleteBoardId) ||
+      null
+    );
   };
 
   // Получаем логин пользователя
@@ -110,7 +128,10 @@ export default function BoardsPage() {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenMenuId(null);
       }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
         setShowUserMenu(false);
       }
     };
@@ -153,7 +174,9 @@ export default function BoardsPage() {
         }
 
         if (!ownResponse.ok) {
-          const errorData = await ownResponse.json().catch(() => ({ detail: { message: "Ошибка загрузки досок" } }));
+          const errorData = await ownResponse
+            .json()
+            .catch(() => ({ detail: { message: "Ошибка загрузки досок" } }));
           throw new Error(errorData.detail?.message || "Ошибка загрузки досок");
         }
 
@@ -161,15 +184,21 @@ export default function BoardsPage() {
         setOwnBoards(ownData.boards || []);
 
         // Загружаем расшаренные доски
-        const sharedResponse = await fetch(`${API_URL}/api/v1/boards?filter=shared`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const sharedResponse = await fetch(
+          `${API_URL}/api/v1/boards?filter=shared`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        });
+        );
 
         if (sharedResponse.ok) {
           const sharedContentType = sharedResponse.headers.get("content-type");
-          if (sharedContentType && sharedContentType.includes("application/json")) {
+          if (
+            sharedContentType &&
+            sharedContentType.includes("application/json")
+          ) {
             const sharedData: BoardsResponse = await sharedResponse.json();
             setSharedBoards(sharedData.boards || []);
           }
@@ -178,7 +207,9 @@ export default function BoardsPage() {
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError("Произошла ошибка при загрузке досок. Проверьте подключение к серверу.");
+          setError(
+            "Произошла ошибка при загрузке досок. Проверьте подключение к серверу.",
+          );
         }
         console.error("Boards loading error:", err);
       } finally {
@@ -198,18 +229,23 @@ export default function BoardsPage() {
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/boards/${deleteBoardId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/api/v1/boards/${deleteBoardId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
         },
-        body: JSON.stringify({}),
-      });
+      );
 
       if (response.ok || response.status === 204) {
         setOwnBoards(ownBoards.filter((b) => b.boardId !== deleteBoardId));
-        setSharedBoards(sharedBoards.filter((b) => b.boardId !== deleteBoardId));
+        setSharedBoards(
+          sharedBoards.filter((b) => b.boardId !== deleteBoardId),
+        );
         setDeleteBoardId(null);
       }
     } catch (err) {
@@ -288,16 +324,21 @@ export default function BoardsPage() {
     setShareError(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/boards/${shareBoardId}/share`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${API_URL}/api/v1/boards/${shareBoardId}/share`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail?.message || "Ошибка загрузки списка пользователей");
+        throw new Error(
+          errorData.detail?.message || "Ошибка загрузки списка пользователей",
+        );
       }
 
       const data: ShareListResponse = await response.json();
@@ -331,24 +372,31 @@ export default function BoardsPage() {
     setShareSuccess(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/boards/${shareBoardId}/share`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/api/v1/boards/${shareBoardId}/share`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userLogin: shareUserId.trim(),
+            permission: sharePermission,
+          }),
         },
-        body: JSON.stringify({
-          userLogin: shareUserId.trim(),
-          permission: sharePermission,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail?.message || "Ошибка предоставления доступа");
+        throw new Error(
+          errorData.detail?.message || "Ошибка предоставления доступа",
+        );
       }
 
-      setShareSuccess(`Доступ успешно предоставлен пользователю ${shareUserId.trim()}`);
+      setShareSuccess(
+        `Доступ успешно предоставлен пользователю ${shareUserId.trim()}`,
+      );
       setShareUserId("");
       setSharePermission("view");
       // Обновляем список пользователей
@@ -361,30 +409,40 @@ export default function BoardsPage() {
   };
 
   // Обновление доступа пользователя
-  const handleUpdatePermission = async (userLogin: string, permission: "view" | "edit") => {
+  const handleUpdatePermission = async (
+    userLogin: string,
+    permission: "view" | "edit",
+  ) => {
     const token = localStorage.getItem("token");
     if (!token || !shareBoardId) return;
 
-    setEditingUserId(shareList.find(s => s.userLogin === userLogin)?.userId || null);
+    setEditingUserId(
+      shareList.find((s) => s.userLogin === userLogin)?.userId || null,
+    );
     setShareError(null);
     setShareSuccess(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/boards/${shareBoardId}/share`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/api/v1/boards/${shareBoardId}/share`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userLogin: userLogin,
+            permission: permission,
+          }),
         },
-        body: JSON.stringify({
-          userLogin: userLogin,
-          permission: permission,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail?.message || "Ошибка обновления доступа");
+        throw new Error(
+          errorData.detail?.message || "Ошибка обновления доступа",
+        );
       }
 
       setShareSuccess(`Доступ пользователя ${userLogin} успешно обновлен`);
@@ -399,28 +457,37 @@ export default function BoardsPage() {
 
   // Удаление доступа пользователя
   const handleRevokeAccess = async (userLogin: string) => {
-    if (!confirm(`Вы уверены, что хотите отозвать доступ у пользователя ${userLogin}?`)) {
+    if (
+      !confirm(
+        `Вы уверены, что хотите отозвать доступ у пользователя ${userLogin}?`,
+      )
+    ) {
       return;
     }
 
     const token = localStorage.getItem("token");
     if (!token || !shareBoardId) return;
 
-    setDeletingUserId(shareList.find(s => s.userLogin === userLogin)?.userId || null);
+    setDeletingUserId(
+      shareList.find((s) => s.userLogin === userLogin)?.userId || null,
+    );
     setShareError(null);
     setShareSuccess(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/boards/${shareBoardId}/share`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/api/v1/boards/${shareBoardId}/share`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userLogin: userLogin,
+          }),
         },
-        body: JSON.stringify({
-          userLogin: userLogin,
-        }),
-      });
+      );
 
       if (!response.ok && response.status !== 204) {
         const errorData = await response.json();
@@ -449,7 +516,13 @@ export default function BoardsPage() {
     setDeletingUserId(null);
   };
 
-  const BoardCard = ({ board, showMenu = true }: { board: BoardSummary; showMenu?: boolean }) => (
+  const BoardCard = ({
+    board,
+    showMenu = true,
+  }: {
+    board: BoardSummary;
+    showMenu?: boolean;
+  }) => (
     <div className="relative w-[200px] h-[200px] border-2 border-gray-800 rounded-2xl flex flex-col">
       {/* Область доски */}
       <Link
@@ -545,8 +618,17 @@ export default function BoardsPage() {
   // Компонент хедера
   const Header = () => (
     <header className="bg-white/90 backdrop-blur-sm border-b border-indigo-200/40 p-4 flex items-center">
-      <div className="flex flex-wrap items-center justify-between gap-4 w-full" style={{ paddingLeft: `${HEADER_PADDING_X}px`, paddingRight: `${HEADER_PADDING_X}px` }}>
-        <Link href="/" className="text-black text-2xl font-normal tracking-wide hover:text-indigo-600 transition-colors leading-none">
+      <div
+        className="flex flex-wrap items-center justify-between gap-4 w-full"
+        style={{
+          paddingLeft: `${HEADER_PADDING_X}px`,
+          paddingRight: `${HEADER_PADDING_X}px`,
+        }}
+      >
+        <Link
+          href="/"
+          className="text-black text-2xl font-normal tracking-wide hover:text-indigo-600 transition-colors leading-none"
+        >
           MIRUMIR
         </Link>
         {userLogin && (
@@ -563,7 +645,12 @@ export default function BoardsPage() {
                 fill="currentColor"
                 className={`transition-transform ${showUserMenu ? "rotate-180" : ""}`}
               >
-                <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path
+                  d="M2 4L6 8L10 4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                />
               </svg>
             </button>
 
@@ -591,15 +678,25 @@ export default function BoardsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <Header />
-        <div style={{ 
-          paddingLeft: `${BORDER_LEFT}px`, 
-          paddingRight: `${BORDER_RIGHT}px`, 
-          paddingBottom: `${BORDER_BOTTOM}px`, 
-          paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px"
-        }}>
-          <main 
-            className={ENABLE_TOP_BORDER ? "bg-white rounded-2xl flex items-center justify-center" : "bg-white rounded-b-2xl flex items-center justify-center"}
-            style={{ height: ENABLE_TOP_BORDER ? `calc(100vh - 56px - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)` : `calc(100vh - 56px - ${BORDER_BOTTOM}px)` }}
+        <div
+          style={{
+            paddingLeft: `${BORDER_LEFT}px`,
+            paddingRight: `${BORDER_RIGHT}px`,
+            paddingBottom: `${BORDER_BOTTOM}px`,
+            paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px",
+          }}
+        >
+          <main
+            className={
+              ENABLE_TOP_BORDER
+                ? "bg-white rounded-2xl flex items-center justify-center"
+                : "bg-white rounded-b-2xl flex items-center justify-center"
+            }
+            style={{
+              height: ENABLE_TOP_BORDER
+                ? `calc(100vh - 56px - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)`
+                : `calc(100vh - 56px - ${BORDER_BOTTOM}px)`,
+            }}
           >
             <span className="text-gray-500 text-lg">Загрузка...</span>
           </main>
@@ -614,50 +711,60 @@ export default function BoardsPage() {
       <Header />
 
       {/* Main Content - обертка создает окантовку через padding */}
-      <div style={{ 
-        paddingLeft: `${BORDER_LEFT}px`, 
-        paddingRight: `${BORDER_RIGHT}px`, 
-        paddingBottom: `${BORDER_BOTTOM}px`, 
-        paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px"
-      }}>
-        <main 
-          className={ENABLE_TOP_BORDER ? "bg-white rounded-2xl overflow-y-auto" : "bg-white rounded-b-2xl overflow-y-auto"}
-          style={{ 
-            height: ENABLE_TOP_BORDER ? `calc(100vh - 56px - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)` : `calc(100vh - 56px - ${BORDER_BOTTOM}px)`,
-            paddingTop: "48px", 
-            paddingLeft: "48px", 
-            paddingRight: "48px", 
-            paddingBottom: "48px" 
+      <div
+        style={{
+          paddingLeft: `${BORDER_LEFT}px`,
+          paddingRight: `${BORDER_RIGHT}px`,
+          paddingBottom: `${BORDER_BOTTOM}px`,
+          paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px",
+        }}
+      >
+        <main
+          className={
+            ENABLE_TOP_BORDER
+              ? "bg-white rounded-2xl overflow-y-auto"
+              : "bg-white rounded-b-2xl overflow-y-auto"
+          }
+          style={{
+            height: ENABLE_TOP_BORDER
+              ? `calc(100vh - 56px - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)`
+              : `calc(100vh - 56px - ${BORDER_BOTTOM}px)`,
+            paddingTop: "48px",
+            paddingLeft: "48px",
+            paddingRight: "48px",
+            paddingBottom: "48px",
           }}
         >
-        {error && (
-          <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 mb-8 rounded">
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 mb-8 rounded">
+              {error}
+            </div>
+          )}
 
-        {/* Your boards */}
-        <section style={{ marginBottom: "48px" }}>
-          <h2 className="text-4xl font-light text-black mb-8">Your boards</h2>
-          <div className="flex flex-wrap gap-6">
-            {ownBoards.map((board) => (
-              <BoardCard key={board.boardId} board={board} />
-            ))}
-            <AddBoardCard />
-          </div>
-        </section>
-
-        {/* Shared boards */}
-        {sharedBoards.length > 0 && (
-          <section>
-            <h2 className="text-4xl font-light text-black mb-8">Shared boards</h2>
+          {/* Your boards */}
+          <section style={{ marginBottom: "48px" }}>
+            <h2 className="text-4xl font-light text-black mb-8">Your boards</h2>
             <div className="flex flex-wrap gap-6">
-              {sharedBoards.map((board) => (
+              {ownBoards.map((board) => (
                 <BoardCard key={board.boardId} board={board} />
               ))}
+              <AddBoardCard />
             </div>
           </section>
-        )}
+
+          {/* Shared boards */}
+          {sharedBoards.length > 0 && (
+            <section>
+              <h2 className="text-4xl font-light text-black mb-8">
+                Shared boards
+              </h2>
+              <div className="flex flex-wrap gap-6">
+                {sharedBoards.map((board) => (
+                  <BoardCard key={board.boardId} board={board} />
+                ))}
+              </div>
+            </section>
+          )}
         </main>
       </div>
 
@@ -673,12 +780,18 @@ export default function BoardsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Заголовок */}
-            <h2 style={{ marginBottom: "32px" }} className="text-3xl font-light text-black">
+            <h2
+              style={{ marginBottom: "32px" }}
+              className="text-3xl font-light text-black"
+            >
               Создать доску
             </h2>
 
             {createError && (
-              <div style={{ marginBottom: "24px" }} className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded text-sm">
+              <div
+                style={{ marginBottom: "24px" }}
+                className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded text-sm"
+              >
                 {createError}
               </div>
             )}
@@ -687,7 +800,10 @@ export default function BoardsPage() {
             <div style={{ marginBottom: "32px" }}>
               {/* Название */}
               <div style={{ marginBottom: "24px" }}>
-                <label style={{ marginBottom: "12px", display: "block" }} className="text-base text-gray-600">
+                <label
+                  style={{ marginBottom: "12px", display: "block" }}
+                  className="text-base text-gray-600"
+                >
                   Название <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -704,7 +820,10 @@ export default function BoardsPage() {
 
               {/* Описание */}
               <div>
-                <label style={{ marginBottom: "12px", display: "block" }} className="text-base text-gray-600">
+                <label
+                  style={{ marginBottom: "12px", display: "block" }}
+                  className="text-base text-gray-600"
+                >
                   Описание
                 </label>
                 <textarea
@@ -754,32 +873,42 @@ export default function BoardsPage() {
             className="bg-white rounded-2xl w-full max-w-lg shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ marginBottom: "32px" }} className="text-3xl font-light text-black">
+            <h2
+              style={{ marginBottom: "32px" }}
+              className="text-3xl font-light text-black"
+            >
               Информация о доске
             </h2>
 
             <div style={{ marginBottom: "32px" }} className="space-y-4">
               <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-gray-500">ID</span>
-                <span className="text-gray-800 font-medium">{getInfoBoard()?.boardId}</span>
+                <span className="text-gray-800 font-medium">
+                  {getInfoBoard()?.boardId}
+                </span>
               </div>
 
               <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-gray-500">Название</span>
-                <span className="text-gray-800 font-medium">{getInfoBoard()?.title}</span>
+                <span className="text-gray-800 font-medium">
+                  {getInfoBoard()?.title}
+                </span>
               </div>
 
               {getInfoBoard()?.description && (
                 <div className="py-3 border-b border-gray-200">
                   <span className="text-gray-500 block mb-2">Описание</span>
-                  <span className="text-gray-800">{getInfoBoard()?.description}</span>
+                  <span className="text-gray-800">
+                    {getInfoBoard()?.description}
+                  </span>
                 </div>
               )}
 
               <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-gray-500">Владелец</span>
                 <span className="text-gray-800 font-medium">
-                  {getInfoBoard()?.ownerName || `ID: ${getInfoBoard()?.ownerId}`}
+                  {getInfoBoard()?.ownerName ||
+                    `ID: ${getInfoBoard()?.ownerId}`}
                 </span>
               </div>
 
@@ -795,14 +924,18 @@ export default function BoardsPage() {
               {getInfoBoard()?.stickerCount !== undefined && (
                 <div className="flex justify-between py-3 border-b border-gray-200">
                   <span className="text-gray-500">Стикеров</span>
-                  <span className="text-gray-800 font-medium">{getInfoBoard()?.stickerCount}</span>
+                  <span className="text-gray-800 font-medium">
+                    {getInfoBoard()?.stickerCount}
+                  </span>
                 </div>
               )}
 
               <div className="flex justify-between py-3 border-b border-gray-200">
                 <span className="text-gray-500">Обновлено</span>
                 <span className="text-gray-800 font-medium">
-                  {new Date(getInfoBoard()?.updatedAt || "").toLocaleString("ru-RU")}
+                  {new Date(getInfoBoard()?.updatedAt || "").toLocaleString(
+                    "ru-RU",
+                  )}
                 </span>
               </div>
             </div>
@@ -829,14 +962,19 @@ export default function BoardsPage() {
             className="bg-white rounded-2xl w-full max-w-md shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ marginBottom: "16px" }} className="text-2xl font-light text-black">
+            <h2
+              style={{ marginBottom: "16px" }}
+              className="text-2xl font-light text-black"
+            >
               Удалить доску?
             </h2>
 
             <p style={{ marginBottom: "32px" }} className="text-gray-600">
               Вы уверены, что хотите удалить доску{" "}
-              <span className="font-medium text-gray-800">"{getDeleteBoard()?.title}"</span>?
-              Это действие нельзя отменить.
+              <span className="font-medium text-gray-800">
+                "{getDeleteBoard()?.title}"
+              </span>
+              ? Это действие нельзя отменить.
             </p>
 
             <div style={{ display: "flex", gap: "16px" }}>
@@ -872,29 +1010,44 @@ export default function BoardsPage() {
             className="bg-white rounded-2xl w-full max-w-2xl shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ marginBottom: "16px" }} className="text-3xl font-light text-black">
+            <h2
+              style={{ marginBottom: "16px" }}
+              className="text-3xl font-light text-black"
+            >
               Управление доступом
             </h2>
 
             <p style={{ marginBottom: "32px" }} className="text-gray-600">
-              Доска: <span className="font-medium text-gray-800">"{getShareBoard()?.title}"</span>
+              Доска:{" "}
+              <span className="font-medium text-gray-800">
+                "{getShareBoard()?.title}"
+              </span>
             </p>
 
             {shareError && (
-              <div style={{ marginBottom: "24px" }} className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded text-sm">
+              <div
+                style={{ marginBottom: "24px" }}
+                className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded text-sm"
+              >
                 {shareError}
               </div>
             )}
 
             {shareSuccess && (
-              <div style={{ marginBottom: "24px" }} className="bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded text-sm">
+              <div
+                style={{ marginBottom: "24px" }}
+                className="bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded text-sm"
+              >
                 {shareSuccess}
               </div>
             )}
 
             {/* Список пользователей с доступом */}
             <div style={{ marginBottom: "32px" }}>
-              <h3 style={{ marginBottom: "16px" }} className="text-xl font-medium text-gray-800">
+              <h3
+                style={{ marginBottom: "16px" }}
+                className="text-xl font-medium text-gray-800"
+              >
                 Пользователи с доступом
               </h3>
 
@@ -914,34 +1067,53 @@ export default function BoardsPage() {
                       className="border border-gray-200 rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex-1">
-                        <div className="font-medium text-gray-800 mb-1">{share.userLogin}</div>
+                        <div className="font-medium text-gray-800 mb-1">
+                          {share.userLogin}
+                        </div>
                         <div className="text-sm text-gray-500">
-                          {share.permission === "edit" ? "Редактирование" : "Просмотр"}
+                          {share.permission === "edit"
+                            ? "Редактирование"
+                            : "Просмотр"}
                           {" • "}
-                          Предоставлен {new Date(share.grantedAt).toLocaleDateString("ru-RU")}
+                          Предоставлен{" "}
+                          {new Date(share.grantedAt).toLocaleDateString(
+                            "ru-RU",
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {/* Изменение прав доступа */}
                         <div className="flex gap-1">
                           <button
-                            onClick={() => handleUpdatePermission(share.userLogin, "view")}
-                            disabled={editingUserId === share.userId || share.permission === "view"}
-                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50 ${share.permission === "view"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                              }`}
+                            onClick={() =>
+                              handleUpdatePermission(share.userLogin, "view")
+                            }
+                            disabled={
+                              editingUserId === share.userId ||
+                              share.permission === "view"
+                            }
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+                              share.permission === "view"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
                             title="Просмотр"
                           >
                             Просмотр
                           </button>
                           <button
-                            onClick={() => handleUpdatePermission(share.userLogin, "edit")}
-                            disabled={editingUserId === share.userId || share.permission === "edit"}
-                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50 ${share.permission === "edit"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                              }`}
+                            onClick={() =>
+                              handleUpdatePermission(share.userLogin, "edit")
+                            }
+                            disabled={
+                              editingUserId === share.userId ||
+                              share.permission === "edit"
+                            }
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+                              share.permission === "edit"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
                             title="Редактирование"
                           >
                             Редактирование
@@ -964,13 +1136,25 @@ export default function BoardsPage() {
             </div>
 
             {/* Форма добавления нового пользователя */}
-            <div style={{ marginBottom: "32px", paddingTop: "32px", borderTop: "1px solid #e5e7eb" }}>
-              <h3 style={{ marginBottom: "16px" }} className="text-xl font-medium text-gray-800">
+            <div
+              style={{
+                marginBottom: "32px",
+                paddingTop: "32px",
+                borderTop: "1px solid #e5e7eb",
+              }}
+            >
+              <h3
+                style={{ marginBottom: "16px" }}
+                className="text-xl font-medium text-gray-800"
+              >
                 Добавить пользователя
               </h3>
 
               <div style={{ marginBottom: "24px" }}>
-                <label style={{ marginBottom: "12px", display: "block" }} className="text-base text-gray-600">
+                <label
+                  style={{ marginBottom: "12px", display: "block" }}
+                  className="text-base text-gray-600"
+                >
                   Логин пользователя <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -990,7 +1174,10 @@ export default function BoardsPage() {
               </div>
 
               <div style={{ marginBottom: "24px" }}>
-                <label style={{ marginBottom: "12px", display: "block" }} className="text-base text-gray-600">
+                <label
+                  style={{ marginBottom: "12px", display: "block" }}
+                  className="text-base text-gray-600"
+                >
                   Уровень доступа
                 </label>
                 <div style={{ display: "flex", gap: "12px" }}>
@@ -998,10 +1185,11 @@ export default function BoardsPage() {
                     onClick={() => setSharePermission("view")}
                     disabled={isSharing}
                     style={{ height: "56px" }}
-                    className={`flex-1 rounded-xl text-base transition-colors disabled:opacity-50 ${sharePermission === "view"
-                      ? "bg-[#5a5a5a] text-white"
-                      : "bg-[#f5f5f5] text-gray-700 hover:bg-gray-200"
-                      }`}
+                    className={`flex-1 rounded-xl text-base transition-colors disabled:opacity-50 ${
+                      sharePermission === "view"
+                        ? "bg-[#5a5a5a] text-white"
+                        : "bg-[#f5f5f5] text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     Просмотр
                   </button>
@@ -1009,10 +1197,11 @@ export default function BoardsPage() {
                     onClick={() => setSharePermission("edit")}
                     disabled={isSharing}
                     style={{ height: "56px" }}
-                    className={`flex-1 rounded-xl text-base transition-colors disabled:opacity-50 ${sharePermission === "edit"
-                      ? "bg-[#5a5a5a] text-white"
-                      : "bg-[#f5f5f5] text-gray-700 hover:bg-gray-200"
-                      }`}
+                    className={`flex-1 rounded-xl text-base transition-colors disabled:opacity-50 ${
+                      sharePermission === "edit"
+                        ? "bg-[#5a5a5a] text-white"
+                        : "bg-[#f5f5f5] text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     Редактирование
                   </button>
@@ -1045,4 +1234,3 @@ export default function BoardsPage() {
     </div>
   );
 }
-
