@@ -140,3 +140,5 @@ async def test_delete_sticker(client: AsyncClient):
     
     assert response.status_code == 204
 
+
+

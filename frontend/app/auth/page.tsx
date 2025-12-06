@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -24,20 +24,27 @@ interface ErrorDetail {
 
 export default function AuthPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Проверяем, пришел ли пользователь после регистрации
+  // Проверяем авторизацию и редирект после регистрации
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/boards");
+      return;
+    }
+
     const registered = searchParams.get("registered");
     if (registered) {
       setSuccess(`Пользователь ${registered} успешно зарегистрирован! Теперь войдите в систему.`);
       setLogin(registered);
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleLogin = async () => {
     if (!login || !password) {
@@ -70,9 +77,8 @@ export default function AuthPage() {
       localStorage.setItem("userId", String(data.userId));
       localStorage.setItem("userLogin", data.login);
       
-      setSuccess(`Добро пожаловать, ${data.login}!`);
-      setLogin("");
-      setPassword("");
+      // Перенаправляем на страницу досок
+      router.push("/boards");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Произошла ошибка");
     } finally {

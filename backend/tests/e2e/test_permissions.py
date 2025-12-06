@@ -715,3 +715,5 @@ async def test_view_user_can_list_boards(client: AsyncClient):
     board_ids = [b["boardId"] for b in boards]
     assert board_id in board_ids
 
+
+
