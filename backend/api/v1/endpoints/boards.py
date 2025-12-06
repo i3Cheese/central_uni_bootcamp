@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "",
     response_model=BoardResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Создание новой доски",
@@ -65,7 +65,7 @@ async def create_board(
 
 
 @router.get(
-    "/",
+    "",
     response_model=BoardListResponse,
     summary="Получение списка досок",
     description="Получение списка досок текущего пользователя (собственных и расшаренных)",
