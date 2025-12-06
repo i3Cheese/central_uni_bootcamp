@@ -1,11 +1,12 @@
 // app/board/[id]/page.tsx
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ResizableSticker from '../../components/sticker';
 import { HEADER_PADDING_X } from '../../constants/borders';
+import { useWebSocket, StickerWSData, BoardWSData } from '../../hooks/useWebSocket';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -42,6 +43,24 @@ interface BoardData {
   }[];
   permission: string;
 }
+
+// Static color conversion function (used in WebSocket handlers before component renders)
+const hexToTailwindStatic = (hexColor: string): string => {
+  const colorMap: Record<string, string> = {
+    '#FFEB3B': 'bg-yellow-200',
+    '#2196F3': 'bg-blue-200',
+    '#4CAF50': 'bg-green-200',
+    '#E91E63': 'bg-pink-200',
+    '#9C27B0': 'bg-purple-200',
+    '#F44336': 'bg-red-200',
+    '#00BCD4': 'bg-cyan-200',
+    '#FF9800': 'bg-orange-200',
+    '#FFFFFF': 'bg-white',
+    '#000000': 'bg-gray-800',
+    '#F5F5F5': 'bg-gray-50',
+  };
+  return colorMap[hexColor?.toUpperCase()] || 'bg-yellow-200';
+};
 
 // SAMPLE API RESPONSE FOR DEVELOPMENT/TESTING
 const SAMPLE_BOARD_RESPONSE: BoardData = {
@@ -103,7 +122,7 @@ const SAMPLE_BOARD_RESPONSE: BoardData = {
 export default function BoardPage() {
   const params = useParams();
   const router = useRouter();
-  const boardId = params.id;
+  const boardId = params.id as string;
 
   const [board, setBoard] = useState<BoardData | null>(null);
   const [stickers, setStickers] = useState<StickerData[]>([]);
@@ -118,6 +137,76 @@ export default function BoardPage() {
   const boardRef = useRef<HTMLDivElement>(null);
 
   const canEdit = board?.permission === "edit" || board?.permission === "owner";
+
+  // WebSocket event handlers
+  const handleWsStickerCreated = useCallback((data: StickerWSData) => {
+    console.log('WS: Sticker created', data);
+    const newSticker: StickerData = {
+      id: data.stickerId.toString(),
+      text: data.text || '',
+      position: { x: data.x, y: data.y },
+      size: { width: data.width, height: data.height },
+      color: hexToTailwindStatic(data.color),
+    };
+    setStickers(prev => {
+      // Check if sticker already exists (we might have added it optimistically)
+      if (prev.find(s => s.id === newSticker.id)) {
+        return prev;
+      }
+      return [...prev, newSticker];
+    });
+  }, []);
+
+  const handleWsStickerUpdated = useCallback((data: StickerWSData) => {
+    console.log('WS: Sticker updated', data);
+    setStickers(prev => prev.map(sticker =>
+      sticker.id === data.stickerId.toString()
+        ? {
+            ...sticker,
+            text: data.text || '',
+            position: { x: data.x, y: data.y },
+            size: { width: data.width, height: data.height },
+            color: hexToTailwindStatic(data.color),
+          }
+        : sticker
+    ));
+  }, []);
+
+  const handleWsStickerDeleted = useCallback((data: { stickerId: number; boardId: number }) => {
+    console.log('WS: Sticker deleted', data);
+    setStickers(prev => prev.filter(sticker => sticker.id !== data.stickerId.toString()));
+  }, []);
+
+  const handleWsBoardUpdated = useCallback((data: BoardWSData) => {
+    console.log('WS: Board updated', data);
+    setBoard(prev => prev ? {
+      ...prev,
+      title: data.title,
+      description: data.description,
+      backgroundColor: data.backgroundColor,
+      updatedAt: data.updatedAt,
+    } : null);
+  }, []);
+
+  const handleWsBoardDeleted = useCallback(() => {
+    console.log('WS: Board deleted');
+    alert('This board has been deleted');
+    router.push('/boards');
+  }, [router]);
+
+  // Initialize WebSocket connection
+  const { isConnected, connectionCount } = useWebSocket({
+    boardId: boardId || '',
+    onStickerCreated: handleWsStickerCreated,
+    onStickerUpdated: handleWsStickerUpdated,
+    onStickerDeleted: handleWsStickerDeleted,
+    onBoardUpdated: handleWsBoardUpdated,
+    onBoardDeleted: handleWsBoardDeleted,
+    onUserJoined: (user) => console.log('User joined:', user.userLogin),
+    onUserLeft: (user) => console.log('User left:', user.userLogin),
+    onConnected: (data) => console.log('WebSocket connected:', data),
+    onError: (error) => console.error('WebSocket error:', error),
+  });
 
   const colors = [
     { name: 'Yellow', value: 'bg-yellow-200', border: 'border-yellow-300' },
@@ -612,8 +701,19 @@ export default function BoardPage() {
                   </button>
                 </>
               )}
-              <div className="text-xs text-slate-500 ml-2">
-                {stickers.length} sticker{stickers.length !== 1 ? 's' : ''}
+              <div className="text-xs text-slate-500 ml-2 flex items-center gap-2">
+                <span>{stickers.length} sticker{stickers.length !== 1 ? 's' : ''}</span>
+                <span className="flex items-center gap-1">
+                  <span 
+                    className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+                    title={isConnected ? 'Connected' : 'Disconnected'}
+                  />
+                  {connectionCount > 1 && (
+                    <span className="text-slate-400" title={`${connectionCount} users online`}>
+                      {connectionCount} online
+                    </span>
+                  )}
+                </span>
               </div>
             </div>
             {userLogin && (

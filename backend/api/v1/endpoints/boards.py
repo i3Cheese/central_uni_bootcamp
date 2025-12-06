@@ -1,11 +1,12 @@
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status, BackgroundTasks
 from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
 from api.deps import BoardWithAccess, CurrentUser, SessionDep, BoardWithEdit, BoardWithOwner
 from api.utils import get_user_permission
+from core.websocket import manager, WSEventType, create_ws_message
 from models.access import Access
 from models.board import Board
 from models.sticker import Sticker
@@ -270,6 +271,7 @@ async def update_board(
         board_with_edit: BoardWithEdit,
         new_data: BoardUpdate,
         db: SessionDep,
+        background_tasks: BackgroundTasks,
 ) -> BoardResponse:
     """
     Обновление существующей доски.
@@ -298,7 +300,7 @@ async def update_board(
             detail="Board creator not found",
         )
 
-    return BoardResponse(
+    response = BoardResponse(
         boardId=board.board_id,
         title=board.title or "",
         description=board.description,
@@ -308,6 +310,15 @@ async def update_board(
         createdAt=board.created_at,
         updatedAt=board.updated_at,
     )
+
+    # Отправляем WebSocket уведомление об обновлении доски
+    background_tasks.add_task(
+        manager.broadcast_to_board,
+        board.board_id,
+        create_ws_message(WSEventType.BOARD_UPDATED, response.model_dump(mode="json"))
+    )
+
+    return response
 
 
 @router.delete(
@@ -319,6 +330,7 @@ async def update_board(
 async def delete_board(
         board_with_owner: BoardWithOwner,
         db: SessionDep,
+        background_tasks: BackgroundTasks,
 ):
     """
     Удаление доски по ID.
@@ -326,6 +338,16 @@ async def delete_board(
     - board_id: ID доски
     """
     board, _ = board_with_owner
+    board_id = board.board_id
 
     await db.delete(board)
     await db.commit()
+
+    # Отправляем WebSocket уведомление об удалении доски
+    background_tasks.add_task(
+        manager.broadcast_to_board,
+        board_id,
+        create_ws_message(WSEventType.BOARD_DELETED, {
+            "boardId": board_id,
+        })
+    )

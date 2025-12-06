@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Path, status
+from fastapi import APIRouter, HTTPException, Path, status, BackgroundTasks
 from sqlalchemy import select
 
 from api.deps import BoardWithEdit, CurrentUser, SessionDep
+from core.websocket import manager, WSEventType, create_ws_message
 from models.sticker import Sticker
 from schemas.stickers import (
     StickerCreate,
@@ -24,6 +25,7 @@ async def create_sticker(
         board_with_edit: BoardWithEdit,
         current_user: CurrentUser,
         db: SessionDep,
+        background_tasks: BackgroundTasks,
 ) -> StickerResponse:
     """
     Создание нового стикера на доске.
@@ -55,7 +57,7 @@ async def create_sticker(
     await db.commit()
     await db.refresh(new_sticker)
 
-    return StickerResponse(
+    response = StickerResponse(
         stickerId=new_sticker.sticker_id,
         boardId=new_sticker.board_id,
         x=new_sticker.x,
@@ -70,6 +72,15 @@ async def create_sticker(
         updatedAt=new_sticker.updated_at,
     )
 
+    # Отправляем WebSocket уведомление о создании стикера
+    background_tasks.add_task(
+        manager.broadcast_to_board,
+        board.board_id,
+        create_ws_message(WSEventType.STICKER_CREATED, response.model_dump(mode="json"))
+    )
+
+    return response
+
 
 @router.patch(
     "/{board_id}/stickers/{sticker_id}",
@@ -81,6 +92,7 @@ async def update_sticker(
     board_with_edit: BoardWithEdit,
     sticker_data: StickerUpdate,
     db: SessionDep,
+    background_tasks: BackgroundTasks,
     sticker_id: int = Path(..., description="ID стикера"),
 ) -> StickerResponse:
     """
@@ -124,7 +136,7 @@ async def update_sticker(
     await db.commit()
     await db.refresh(sticker)
 
-    return StickerResponse(
+    response = StickerResponse(
         stickerId=sticker.sticker_id,
         boardId=sticker.board_id,
         x=sticker.x,
@@ -139,6 +151,15 @@ async def update_sticker(
         updatedAt=sticker.updated_at,
     )
 
+    # Отправляем WebSocket уведомление об обновлении стикера
+    background_tasks.add_task(
+        manager.broadcast_to_board,
+        board.board_id,
+        create_ws_message(WSEventType.STICKER_UPDATED, response.model_dump(mode="json"))
+    )
+
+    return response
+
 
 @router.delete(
     "/{board_id}/stickers/{sticker_id}",
@@ -149,6 +170,7 @@ async def update_sticker(
 async def delete_sticker(
     board_with_edit: BoardWithEdit,
     db: SessionDep,
+    background_tasks: BackgroundTasks,
     sticker_id: int = Path(..., description="ID стикера"),
 ) -> None:
     """
@@ -175,3 +197,13 @@ async def delete_sticker(
 
     await db.delete(sticker)
     await db.commit()
+
+    # Отправляем WebSocket уведомление об удалении стикера
+    background_tasks.add_task(
+        manager.broadcast_to_board,
+        board.board_id,
+        create_ws_message(WSEventType.STICKER_DELETED, {
+            "stickerId": sticker_id,
+            "boardId": board.board_id,
+        })
+    )
