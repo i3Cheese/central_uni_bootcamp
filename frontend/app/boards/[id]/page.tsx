@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import ResizableSticker from '../../components/sticker';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -533,9 +534,9 @@ export default function BoardPage() {
       <div className="absolute top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-gray-800">
+            <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
               Mirumir
-            </h1>
+            </Link>
             {board && (
               <div className="text-sm text-gray-600">
                 / {board?.title || 'Board'}
