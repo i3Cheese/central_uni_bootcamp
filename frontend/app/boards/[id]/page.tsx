@@ -110,6 +110,8 @@ export default function BoardPage() {
   const [useSampleData, setUseSampleData] = useState(false);
   
   const boardRef = useRef<HTMLDivElement>(null);
+  
+  const canEdit = board?.permission === "edit" || board?.permission === "owner";
 
   const colors = [
     { name: 'Yellow', value: 'bg-yellow-200', border: 'border-yellow-300' },
@@ -139,6 +141,25 @@ export default function BoardPage() {
     };
     
     return colorMap[hexColor.toUpperCase()] || 'bg-yellow-200';
+  };
+
+  // Convert Tailwind class to hex color
+  const tailwindToHex = (tailwindClass: string): string => {
+    const colorMap: Record<string, string> = {
+      'bg-yellow-200': '#FFEB3B',
+      'bg-blue-200': '#2196F3',
+      'bg-green-200': '#4CAF50',
+      'bg-pink-200': '#E91E63',
+      'bg-purple-200': '#9C27B0',
+      'bg-red-200': '#F44336',
+      'bg-cyan-200': '#00BCD4',
+      'bg-orange-200': '#FF9800',
+      'bg-white': '#FFFFFF',
+      'bg-gray-800': '#000000',
+      'bg-gray-50': '#F5F5F5',
+    };
+    
+    return colorMap[tailwindClass] || '#FFEB3B';
   };
 
   // Convert API stickers to component format
@@ -173,26 +194,42 @@ export default function BoardPage() {
       setIsLoading(true);
       setError(null);
       
-      // Get token from localStorage or auth context
-      const token = localStorage.getItem('token') || 'demo-token-for-development';
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Not authenticated');
+        setIsLoading(false);
+        return;
+      }
       
-      console.log(`Fetching board ${boardId} from API...`);
-      
-      // Using a relative URL that will be handled by Next.js API routes
-      // or your actual backend if CORS is configured
       const response = await fetch(`${API_URL}/api/v1/boards/${boardId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        // Добавляем mode для лучшей обработки CORS ошибок
+        mode: 'cors',
       });
       
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        setError('Session expired. Please login again.');
+        setIsLoading(false);
+        return;
+      }
+      
+      if (response.status === 403) {
+        setError('You do not have access to this board');
+        setIsLoading(false);
+        return;
+      }
+      
+      if (response.status === 404) {
+        setError('Board not found');
+        setIsLoading(false);
+        return;
+      }
+      
       if (!response.ok) {
-        if (response.status === 404 || response.status >= 500) {
-          console.log('API not available, falling back to sample data');
-          loadSampleData();
-          return;
-        }
         throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
       
@@ -202,10 +239,18 @@ export default function BoardPage() {
       setUseSampleData(false);
       
     } catch (err) {
-      console.warn('API call failed, using sample data instead:', err);
-      // Comment out the error state and use sample data instead
-      // setError(err instanceof Error ? err.message : 'Failed to load board');
-      loadSampleData();
+      console.error('API call failed:', err);
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+        setError(
+          `Cannot connect to backend at ${API_URL}. ` +
+          `Make sure the backend is running. ` +
+          `Check: 1) Backend is running (docker-compose up or uvicorn), ` +
+          `2) CORS is configured for this origin, ` +
+          `3) API_URL is correct in .env`
+        );
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to load board');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -216,7 +261,9 @@ export default function BoardPage() {
     fetchBoardFromApi();
   }, [boardId]);
 
-  const handleAddSticker = () => {
+  const handleAddSticker = async () => {
+    if (!board || !boardId || !canEdit) return;
+    
     // Get random position within board bounds
     const boardRect = boardRef.current?.getBoundingClientRect();
     let x = 50;
@@ -227,90 +274,208 @@ export default function BoardPage() {
       y = Math.random() * (boardRect.height - 200);
     }
 
-    const newSticker: StickerData = {
-      id: `sticker-${Date.now()}`,
-      text: 'Click to edit this text...',
-      position: { x, y },
-      size: { width: 256, height: 128 },
-      color: selectedColor,
-    };
-    
-    setStickers([...stickers, newSticker]);
+    const hexColor = tailwindToHex(selectedColor);
     
     if (useSampleData) {
-      console.log('Adding sticker locally (sample mode)');
-    } else {
-      // TODO: Send API request to create sticker
-      console.log('TODO: Send API request to create sticker');
-      // createStickerOnBackend(boardId, newSticker);
+      const newSticker: StickerData = {
+        id: `sticker-${Date.now()}`,
+        text: 'Click to edit this text...',
+        position: { x, y },
+        size: { width: 256, height: 128 },
+        color: selectedColor,
+      };
+      setStickers([...stickers, newSticker]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          x,
+          y,
+          width: 256,
+          height: 128,
+          color: hexColor,
+          text: 'Click to edit this text...',
+          layerLevel: 0,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create sticker');
+      }
+
+      const newSticker = await response.json();
+      const convertedSticker: StickerData = {
+        id: newSticker.stickerId.toString(),
+        text: newSticker.text || '',
+        position: { x: newSticker.x, y: newSticker.y },
+        size: { width: newSticker.width || 256, height: newSticker.height || 128 },
+        color: hexToTailwind(newSticker.color),
+      };
+      
+      setStickers([...stickers, convertedSticker]);
+    } catch (err) {
+      console.error('Failed to create sticker:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create sticker');
     }
   };
 
-  const handleTextChange = (id: string, text: string) => {
+  const handleTextChange = async (id: string, text: string) => {
     setStickers(stickers.map(sticker => 
       sticker.id === id ? { ...sticker, text } : sticker
     ));
     
     if (useSampleData) {
-      console.log('Updating sticker text locally (sample mode)');
-    } else {
-      // TODO: Send API request to update sticker text
-      console.log('TODO: Send API request to update sticker text');
-      // updateStickerTextOnBackend(id, text);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const sticker = stickers.find(s => s.id === id);
+      if (!sticker) return;
+
+      await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to update sticker text:', err);
     }
   };
 
-  const handleDragStop = (id: string, position: { x: number; y: number }) => {
+  const handleDragStop = async (id: string, position: { x: number; y: number }) => {
     setStickers(stickers.map(sticker =>
       sticker.id === id ? { ...sticker, position } : sticker
     ));
     
     if (useSampleData) {
-      console.log('Updating sticker position locally (sample mode)');
-    } else {
-      // TODO: Send API request to update sticker position
-      console.log('TODO: Send API request to update sticker position');
-      // updateStickerPositionOnBackend(id, position);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          x: position.x,
+          y: position.y,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to update sticker position:', err);
     }
   };
 
-  const handleResizeStop = (id: string, size: { width: number; height: number }) => {
+  const handleResizeStop = async (id: string, size: { width: number; height: number }) => {
     setStickers(stickers.map(sticker =>
       sticker.id === id ? { ...sticker, size } : sticker
     ));
     
     if (useSampleData) {
-      console.log('Updating sticker size locally (sample mode)');
-    } else {
-      // TODO: Send API request to update sticker size
-      console.log('TODO: Send API request to update sticker size');
-      // updateStickerSizeOnBackend(id, size);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          width: size.width,
+          height: size.height,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to update sticker size:', err);
     }
   };
 
-  const handleDeleteSticker = (id: string) => {
+  const handleDeleteSticker = async (id: string) => {
+    if (!confirm('Delete this sticker?')) return;
+
     setStickers(stickers.filter(sticker => sticker.id !== id));
     
     if (useSampleData) {
-      console.log('Deleting sticker locally (sample mode)');
-    } else {
-      // TODO: Send API request to delete sticker
-      console.log('TODO: Send API request to delete sticker');
-      // deleteStickerOnBackend(id);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error('Failed to delete sticker');
+      }
+    } catch (err) {
+      console.error('Failed to delete sticker:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete sticker');
+      // Reload board to sync state
+      fetchBoardFromApi();
     }
   };
 
-  const handleColorChange = (id: string, color: string) => {
+  const handleColorChange = async (id: string, color: string) => {
     setStickers(stickers.map(sticker =>
       sticker.id === id ? { ...sticker, color } : sticker
     ));
     
     if (useSampleData) {
-      console.log('Updating sticker color locally (sample mode)');
-    } else {
-      // TODO: Send API request to update sticker color
-      console.log('TODO: Send API request to update sticker color');
-      // updateStickerColorOnBackend(id, color);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const hexColor = tailwindToHex(color);
+
+      await fetch(`${API_URL}/api/v1/boards/${boardId}/stickers/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          color: hexColor,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to update sticker color:', err);
     }
   };
 
@@ -349,20 +514,20 @@ export default function BoardPage() {
         </div>
       )}
       
-      {/* Error message (commented out - replaced with sample data fallback) */}
-      {/* {error && !useSampleData && (
+      {/* Error message */}
+      {error && (
         <div className="absolute top-20 left-0 right-0 z-40 bg-red-500/90 backdrop-blur-sm p-4 text-center text-white">
           <div className="max-w-7xl mx-auto">
-            Error: {error}
+            <div className="font-semibold mb-2">Error: {error}</div>
             <button 
-              onClick={loadSampleData}
-              className="ml-4 bg-white text-red-500 px-3 py-1 rounded hover:bg-red-50"
+              onClick={handleRetryApi}
+              className="bg-white text-red-500 px-4 py-2 rounded hover:bg-red-50 transition-colors"
             >
-              Use Sample Data Instead
+              Retry
             </button>
           </div>
         </div>
-      )} */}
+      )}
 
       {/* Controls Panel */}
       <div className="absolute top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
@@ -393,13 +558,15 @@ export default function BoardPage() {
                 />
               ))}
             </div>
-            <button
-              onClick={handleAddSticker}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-            >
-              <span>+</span>
-              <span>Add Sticker</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={handleAddSticker}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+              >
+                <span>+</span>
+                <span>Add Sticker</span>
+              </button>
+            )}
             <div className="text-xs text-gray-500 ml-2">
               {stickers.length} sticker{stickers.length !== 1 ? 's' : ''}
             </div>
@@ -424,11 +591,11 @@ export default function BoardPage() {
             initialPosition={sticker.position}
             initialSize={sticker.size}
             color={sticker.color}
-            onTextChange={handleTextChange}
-            onDragStop={handleDragStop}
-            onResizeStop={handleResizeStop}
-            onColorChange={handleColorChange}
-            onDelete={handleDeleteSticker}
+            onTextChange={canEdit ? handleTextChange : undefined}
+            onDragStop={canEdit ? handleDragStop : undefined}
+            onResizeStop={canEdit ? handleResizeStop : undefined}
+            onColorChange={canEdit ? handleColorChange : undefined}
+            onDelete={canEdit ? handleDeleteSticker : undefined}
           />
         ))}
         
