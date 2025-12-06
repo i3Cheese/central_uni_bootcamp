@@ -24,6 +24,7 @@ def hash_password(password: str) -> str:
     hashed = bcrypt.hashpw(password_bytes, salt)
     return hashed.decode("utf-8")
 
+
 router = APIRouter()
 
 
@@ -54,7 +55,7 @@ async def register(request: RegisterRequest, db: SessionDep) -> RegisterResponse
     # Проверяем, существует ли пользователь с таким логином
     result = await db.execute(select(User).where(User.login == request.login))
     existing_user = result.scalar_one_or_none()
-    
+
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -128,4 +129,3 @@ async def login(request: LoginRequest, db: SessionDep) -> LoginResponse:
         token=access_token,
         expiresAt=expires_at,
     )
-

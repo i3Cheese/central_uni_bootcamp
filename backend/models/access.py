@@ -32,14 +32,18 @@ class Access(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     granted_by: Mapped[int] = mapped_column(
-        ForeignKey("users.user_id"), nullable=False, comment="ID пользователя, предоставившего доступ"
+        ForeignKey("users.user_id"),
+        nullable=False,
+        comment="ID пользователя, предоставившего доступ",
     )
 
     # Relationships
-    user: Mapped["User"] = relationship("User", back_populates="accesses", foreign_keys=[user_id])
-    board: Mapped["Board"] = relationship("Board", back_populates="accesses")
-    granter: Mapped["User"] = relationship("User", foreign_keys=[granted_by], overlaps="granted_accesses")
-
-    __table_args__ = (
-        UniqueConstraint("user_id", "board_id", name="uq_user_board"),
+    user: Mapped["User"] = relationship(
+        "User", back_populates="accesses", foreign_keys=[user_id]
     )
+    board: Mapped["Board"] = relationship("Board", back_populates="accesses")
+    granter: Mapped["User"] = relationship(
+        "User", foreign_keys=[granted_by], overlaps="granted_accesses"
+    )
+
+    __table_args__ = (UniqueConstraint("user_id", "board_id", name="uq_user_board"),)

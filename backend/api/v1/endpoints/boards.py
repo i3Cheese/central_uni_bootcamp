@@ -4,7 +4,13 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
-from api.deps import BoardWithAccess, CurrentUser, SessionDep, BoardWithEdit, BoardWithOwner
+from api.deps import (
+    BoardWithAccess,
+    CurrentUser,
+    SessionDep,
+    BoardWithEdit,
+    BoardWithOwner,
+)
 from api.utils import get_user_permission
 from models.access import Access
 from models.board import Board
@@ -30,9 +36,9 @@ router = APIRouter()
     description="Создание новой доски для текущего пользователя",
 )
 async def create_board(
-        board_data: BoardCreate,
-        current_user: CurrentUser,
-        db: SessionDep,
+    board_data: BoardCreate,
+    current_user: CurrentUser,
+    db: SessionDep,
 ) -> BoardResponse:
     """
     Создание новой доски.
@@ -71,21 +77,23 @@ async def create_board(
     description="Получение списка досок текущего пользователя (собственных и расшаренных)",
 )
 async def get_boards(
-        current_user: CurrentUser,
-        db: SessionDep,
-        board_filter: Literal["own", "shared", "all"] = Query(
-            default="all",
-            alias="filter",
-            description="Фильтр досок: own (только свои), shared (только расшаренные), all (все)",
-        ),
-        page: int = Query(default=1, ge=1, description="Номер страницы"),
-        limit: int = Query(default=20, ge=1, le=100,
-                           description="Количество элементов на странице"),
-        sortBy: Literal["createdAt", "updatedAt", "title"] = Query(
-            default="updatedAt", description="Поле для сортировки"
-        ),
-        sortOrder: Literal["asc", "desc"] = Query(
-            default="desc", description="Порядок сортировки"),
+    current_user: CurrentUser,
+    db: SessionDep,
+    board_filter: Literal["own", "shared", "all"] = Query(
+        default="all",
+        alias="filter",
+        description="Фильтр досок: own (только свои), shared (только расшаренные), all (все)",
+    ),
+    page: int = Query(default=1, ge=1, description="Номер страницы"),
+    limit: int = Query(
+        default=20, ge=1, le=100, description="Количество элементов на странице"
+    ),
+    sortBy: Literal["createdAt", "updatedAt", "title"] = Query(
+        default="updatedAt", description="Поле для сортировки"
+    ),
+    sortOrder: Literal["asc", "desc"] = Query(
+        default="desc", description="Порядок сортировки"
+    ),
 ) -> BoardListResponse:
     """
     Получение списка досок с фильтрацией, пагинацией и сортировкой.
@@ -98,8 +106,7 @@ async def get_boards(
     """
     # Строим базовый запрос в зависимости от фильтра
     if board_filter == "own":
-        base_query = select(Board).where(
-            Board.creator_id == current_user.user_id)
+        base_query = select(Board).where(Board.creator_id == current_user.user_id)
     elif board_filter == "shared":
         base_query = (
             select(Board)
@@ -161,7 +168,8 @@ async def get_boards(
     )
     accesses_result = await db.execute(accesses_query)
     accesses_cache = {
-        access.board_id: access for access in accesses_result.scalars().all()}
+        access.board_id: access for access in accesses_result.scalars().all()
+    }
 
     # Подсчитываем стикеры одним запросом (GROUP BY)
     sticker_counts_query = (
@@ -175,7 +183,9 @@ async def get_boards(
     # Подготавливаем данные для ответа
     board_summaries = []
     for board in boards:
-        permission = await get_user_permission(current_user, board, db, accesses_cache=accesses_cache)
+        permission = await get_user_permission(
+            current_user, board, db, accesses_cache=accesses_cache
+        )
 
         if permission is None:
             continue
@@ -206,8 +216,8 @@ async def get_boards(
     description="Получение полной информации о доске, включая все стикеры",
 )
 async def get_board(
-        board_with_access: BoardWithAccess,
-        db: SessionDep,
+    board_with_access: BoardWithAccess,
+    db: SessionDep,
 ) -> BoardDetail:
     """
     Получение доски по ID со всеми стикерами.
@@ -267,9 +277,9 @@ async def get_board(
     description="Обновление настроек доски текущим пользователем",
 )
 async def update_board(
-        board_with_edit: BoardWithEdit,
-        new_data: BoardUpdate,
-        db: SessionDep,
+    board_with_edit: BoardWithEdit,
+    new_data: BoardUpdate,
+    db: SessionDep,
 ) -> BoardResponse:
     """
     Обновление существующей доски.
@@ -317,8 +327,8 @@ async def update_board(
     description="Удаление доски владельцем",
 )
 async def delete_board(
-        board_with_owner: BoardWithOwner,
-        db: SessionDep,
+    board_with_owner: BoardWithOwner,
+    db: SessionDep,
 ):
     """
     Удаление доски по ID.

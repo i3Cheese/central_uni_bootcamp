@@ -14,7 +14,9 @@ from core.config import settings
 # Можно переопределить через переменную окружения TEST_DATABASE_URL
 test_db_url = os.getenv(
     "TEST_DATABASE_URL",
-    settings.DATABASE_URL.replace("postgres:", "localhost:").replace("postgresql+asyncpg://", "postgresql+asyncpg://")
+    settings.DATABASE_URL.replace("postgres:", "localhost:").replace(
+        "postgresql+asyncpg://", "postgresql+asyncpg://"
+    ),
 )
 
 # Используем БД из .env или тестовую БД
@@ -52,15 +54,16 @@ async def client(db: AsyncSession):
     """
     Create an AsyncClient that uses the override_get_db dependency.
     """
+
     async def override_get_db():
         yield db
 
     app.dependency_overrides[get_db] = override_get_db
-    
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
-    
+
     app.dependency_overrides.clear()
 
 

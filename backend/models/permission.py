@@ -7,4 +7,3 @@ class Permission(str, Enum):
     OWNER = "owner"
     VIEW = "view"
     EDIT = "edit"
-

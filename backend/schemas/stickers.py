@@ -50,18 +50,34 @@ class StickerCreate(BaseModel):
 class StickerResponse(BaseModel):
     """Схема ответа с информацией о стикере."""
 
-    stickerId: int = Field(..., description="Уникальный идентификатор стикера", examples=[1])
-    boardId: int = Field(..., description="ID доски, к которой относится стикер", examples=[1])
+    stickerId: int = Field(
+        ..., description="Уникальный идентификатор стикера", examples=[1]
+    )
+    boardId: int = Field(
+        ..., description="ID доски, к которой относится стикер", examples=[1]
+    )
     x: float = Field(..., description="Координата X стикера на доске", examples=[100.5])
     y: float = Field(..., description="Координата Y стикера на доске", examples=[200.3])
-    width: float | None = Field(default=None, description="Ширина стикера", examples=[200.0])
-    height: float | None = Field(default=None, description="Высота стикера", examples=[200.0])
-    text: str | None = Field(default=None, description="Текст стикера", examples=["Текст стикера"])
-    layerLevel: int = Field(..., description="Уровень слоя для порядка наложения", examples=[1])
+    width: float | None = Field(
+        default=None, description="Ширина стикера", examples=[200.0]
+    )
+    height: float | None = Field(
+        default=None, description="Высота стикера", examples=[200.0]
+    )
+    text: str | None = Field(
+        default=None, description="Текст стикера", examples=["Текст стикера"]
+    )
+    layerLevel: int = Field(
+        ..., description="Уровень слоя для порядка наложения", examples=[1]
+    )
     color: str = Field(..., description="Цвет стикера (hex)", examples=["#FFEB3B"])
     createdBy: int = Field(..., description="ID создателя", examples=[1])
-    createdAt: datetime = Field(..., description="Дата создания", examples=["2024-01-15T10:30:00Z"])
-    updatedAt: datetime = Field(..., description="Дата обновления", examples=["2024-01-15T14:25:00Z"])
+    createdAt: datetime = Field(
+        ..., description="Дата создания", examples=["2024-01-15T10:30:00Z"]
+    )
+    updatedAt: datetime = Field(
+        ..., description="Дата обновления", examples=["2024-01-15T14:25:00Z"]
+    )
 
     model_config = {"from_attributes": True}
 

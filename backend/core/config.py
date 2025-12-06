@@ -3,14 +3,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Mirumir"
-    
+
     # Database settings
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "user"
     POSTGRES_PASSWORD: str = "password"
     POSTGRES_DB: str = "dbname"
-    
+
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 365
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
         env_ignore_empty=True,
     )
-    
+
     @property
     def DATABASE_URL(self) -> str:
         """Собирает DATABASE_URL из отдельных параметров."""

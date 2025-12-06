@@ -20,10 +20,10 @@ router = APIRouter()
     description="Создание нового стикера на доске",
 )
 async def create_sticker(
-        sticker_data: StickerCreate,
-        board_with_edit: BoardWithEdit,
-        current_user: CurrentUser,
-        db: SessionDep,
+    sticker_data: StickerCreate,
+    board_with_edit: BoardWithEdit,
+    current_user: CurrentUser,
+    db: SessionDep,
 ) -> StickerResponse:
     """
     Создание нового стикера на доске.
@@ -48,7 +48,7 @@ async def create_sticker(
         color=sticker_data.color,
         text=sticker_data.text,
         layer_level=sticker_data.layerLevel,
-        created_by=current_user.user_id
+        created_by=current_user.user_id,
     )
 
     db.add(new_sticker)

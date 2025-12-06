@@ -100,4 +100,3 @@ class ErrorResponse(BaseModel):
         description="Дополнительная информация об ошибке",
         examples=[{"field": "login", "reason": "Логин уже занят"}],
     )
-
