@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
-from api.deps import BoardWithAccess, CurrentUser, SessionDep, BoardWithEdit
+from api.deps import BoardWithAccess, CurrentUser, SessionDep, BoardWithEdit, BoardWithOwner
 from api.utils import get_user_permission, check_board_access
 from models.access import Access
 from models.board import Board
@@ -271,9 +271,10 @@ async def update_board(
     """
     Обновление существующей доски.
 
-    - title: Название доски (обязательно, 1-200 символов)
-    - description: Описание доски (опционально, до 1000 символов)
-    - backgroundColor: Цвет фона доски в hex формате (опционально)
+    - board_id: ID доски
+    - title: Новое название доски (обязательно, 1-200 символов)
+    - description: Новое описание доски (опционально, до 1000 символов)
+    - backgroundColor: Новый цвет фона доски в hex формате (опционально)
     """
 
     board, permission = board_with_edit
@@ -295,3 +296,26 @@ async def update_board(
         createdAt=board.created_at,
         updatedAt=board.updated_at,
     )
+
+
+@router.delete(
+    "/{board_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Удаление доски",
+    description="Удаление доски владельцем",
+)
+async def delete_board(
+        board_with_owner: BoardWithOwner,
+        db: SessionDep,
+):
+    """
+    Удаление доски по ID.
+
+    - board_id: ID доски
+    """
+    board, permission = board_with_owner
+
+    await db.delete(board)
+    await db.commit()
+
+    return
