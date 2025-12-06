@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { BORDER_LEFT, BORDER_RIGHT, BORDER_BOTTOM, BORDER_TOP, ENABLE_TOP_BORDER } from "./constants/borders";
 
 export default function Home() {
   const router = useRouter();
@@ -23,45 +24,31 @@ export default function Home() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-[#5a5a5a] flex items-center justify-center">
-        <span className="text-[#a0a0a0] text-lg">Загрузка...</span>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center">
+        <span className="text-slate-300 text-lg">Загрузка...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#5a5a5a]">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
-            Mirumir
-          </Link>
-
-          {/* Auth Buttons */}
-          <div className="flex gap-4">
-            <Link
-              href="/auth"
-              className="text-gray-600 text-base hover:text-gray-900 transition-colors"
-            >
-              Войти
-            </Link>
-            <Link
-              href="/auth/register"
-              className="text-gray-600 text-base hover:text-gray-900 transition-colors"
-            >
-              Регистрация
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
       {/* Main Content */}
-      <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)] flex flex-col items-center justify-center">
+      <div style={{ 
+        paddingLeft: `${BORDER_LEFT}px`, 
+        paddingRight: `${BORDER_RIGHT}px`, 
+        paddingBottom: `${BORDER_BOTTOM}px`, 
+        paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px"
+      }}>
+        <main 
+          className={ENABLE_TOP_BORDER ? "bg-white rounded-2xl flex flex-col items-center justify-center" : "bg-white rounded-b-2xl flex flex-col items-center justify-center"}
+          style={{ height: ENABLE_TOP_BORDER ? `calc(100vh - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)` : `calc(100vh - ${BORDER_BOTTOM}px)` }}
+        >
         {/* Title */}
-        <h1 className="text-5xl font-normal text-black text-center mb-8 tracking-wide">
-          MIRUMIR
-        </h1>
+        <Link href="/">
+          <h1 className="text-5xl font-normal text-black text-center mb-8 tracking-wide hover:text-indigo-600 transition-colors cursor-pointer">
+            MIRUMIR
+          </h1>
+        </Link>
 
         {/* Subtitle */}
         <p className="text-lg text-[#666666] text-center mb-12 max-w-md">
@@ -72,11 +59,12 @@ export default function Home() {
         <Link
           href="/auth/register"
           style={{ padding: "20px 60px" }}
-          className="bg-[#5a5a5a] text-white text-lg hover:bg-[#4a4a4a] transition-colors rounded-full"
+          className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white text-lg hover:from-slate-800 hover:via-indigo-900 hover:to-slate-800 transition-all rounded-full shadow-lg"
         >
           Начать пользоваться
         </Link>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

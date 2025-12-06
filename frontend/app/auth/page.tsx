@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { BORDER_LEFT, BORDER_RIGHT, BORDER_BOTTOM, BORDER_TOP, ENABLE_TOP_BORDER } from "../constants/borders";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -104,22 +105,24 @@ function AuthContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#5a5a5a]">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
-            Mirumir
-          </Link>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
       {/* Main Content */}
-      <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)] flex flex-col items-center pt-32 pb-16">
+      <div style={{ 
+        paddingLeft: `${BORDER_LEFT}px`, 
+        paddingRight: `${BORDER_RIGHT}px`, 
+        paddingBottom: `${BORDER_BOTTOM}px`, 
+        paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px"
+      }}>
+        <main 
+          className={ENABLE_TOP_BORDER ? "bg-white rounded-2xl flex flex-col items-center pt-32 pb-16" : "bg-white rounded-b-2xl flex flex-col items-center pt-32 pb-16"}
+          style={{ height: ENABLE_TOP_BORDER ? `calc(100vh - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)` : `calc(100vh - ${BORDER_BOTTOM}px)` }}
+        >
         {/* Title */}
-        <h1 className="text-4xl font-normal text-black text-center mb-24 tracking-wide max-w-xs leading-tight">
-          MIRUMIR
-        </h1>
+        <Link href="/">
+          <h1 className="text-4xl font-normal text-black text-center mb-24 tracking-wide max-w-xs leading-tight hover:text-indigo-600 transition-colors cursor-pointer">
+            MIRUMIR
+          </h1>
+        </Link>
 
         {/* Form */}
         <div className="w-full max-w-[280px] flex flex-col gap-5">
@@ -144,7 +147,7 @@ function AuthContent() {
             value={login}
             onChange={(e) => setLogin(e.target.value)}
             disabled={isLoading}
-            className="w-full h-11 bg-[#dcdcdc] text-[#666666] text-sm text-center placeholder:text-[#666666] outline-none disabled:opacity-50"
+            className="w-full h-11 bg-[#dcdcdc] text-[#666666] text-sm text-center placeholder:text-[#666666] outline-none disabled:opacity-50 rounded-lg"
           />
 
           {/* Password Input */}
@@ -155,27 +158,31 @@ function AuthContent() {
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
             onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            className="w-full h-11 bg-[#dcdcdc] text-[#666666] text-sm text-center placeholder:text-[#666666] outline-none disabled:opacity-50"
+            className="w-full h-11 bg-[#dcdcdc] text-[#666666] text-sm text-center placeholder:text-[#666666] outline-none disabled:opacity-50 rounded-lg"
           />
 
           {/* Login Button */}
           <button
             onClick={handleLogin}
             disabled={isLoading}
-            className="w-full h-9 bg-[#dcdcdc] text-[#666666] text-sm hover:bg-[#c8c8c8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-9 bg-[#dcdcdc] text-[#666666] text-sm hover:bg-[#c8c8c8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
           >
             {isLoading ? "Загрузка..." : "Войти"}
           </button>
 
           {/* Register Link */}
-          <Link
-            href="/auth/register"
-            className="mt-5 text-[#666666] text-sm text-center hover:underline"
-          >
-            Еще нет аккаунта? Зарегистрироваться
-          </Link>
+          <div className="mt-5 text-[#666666] text-sm text-center">
+            Еще нет аккаунта?{" "}
+            <Link
+              href="/auth/register"
+              className="text-[#444444] hover:text-[#333333] hover:underline transition-colors"
+            >
+              Зарегистрироваться
+            </Link>
+          </div>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

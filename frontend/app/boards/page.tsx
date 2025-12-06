@@ -33,6 +33,8 @@ interface ShareListResponse {
   shares: ShareInfo[];
 }
 
+import { BORDER_LEFT, BORDER_RIGHT, BORDER_BOTTOM, BORDER_TOP, ENABLE_TOP_BORDER } from "../constants/borders";
+
 export default function BoardsPage() {
   const router = useRouter();
   const [ownBoards, setOwnBoards] = useState<BoardSummary[]>([]);
@@ -542,16 +544,16 @@ export default function BoardsPage() {
 
   // Компонент хедера
   const Header = () => (
-    <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
+    <header className="bg-white/90 backdrop-blur-sm border-b border-indigo-200/40 p-4">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-        <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
+        <Link href="/" className="text-slate-700 text-xl tracking-wide hover:text-indigo-600 transition-colors font-medium">
           Mirumir
         </Link>
         {userLogin && (
           <div ref={userMenuRef} className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="text-gray-600 text-base hover:text-gray-900 transition-colors flex items-center gap-2"
+              className="text-slate-700 text-base hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium"
             >
               {userLogin}
               <svg
@@ -568,12 +570,12 @@ export default function BoardsPage() {
             {showUserMenu && (
               <div
                 style={{ padding: "4px" }}
-                className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
+                className="absolute right-0 top-full mt-1 bg-white border border-indigo-200/40 rounded-lg shadow-lg z-20"
               >
                 <button
                   onClick={handleLogout}
                   style={{ padding: "8px 16px" }}
-                  className="text-sm text-red-500 hover:bg-gray-100 rounded"
+                  className="text-sm text-red-500 hover:bg-red-50 rounded transition-colors"
                 >
                   Выйти
                 </button>
@@ -587,22 +589,47 @@ export default function BoardsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#5a5a5a]">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
         <Header />
-        <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)] rounded-b-2xl flex items-center justify-center">
-          <span className="text-gray-500 text-lg">Загрузка...</span>
-        </main>
+        <div style={{ 
+          paddingLeft: `${BORDER_LEFT}px`, 
+          paddingRight: `${BORDER_RIGHT}px`, 
+          paddingBottom: `${BORDER_BOTTOM}px`, 
+          paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px"
+        }}>
+          <main 
+            className={ENABLE_TOP_BORDER ? "bg-white rounded-2xl flex items-center justify-center" : "bg-white rounded-b-2xl flex items-center justify-center"}
+            style={{ height: ENABLE_TOP_BORDER ? `calc(100vh - 56px - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)` : `calc(100vh - 56px - ${BORDER_BOTTOM}px)` }}
+          >
+            <span className="text-gray-500 text-lg">Загрузка...</span>
+          </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#5a5a5a]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
       {/* Header */}
       <Header />
 
-      {/* Main Content */}
-      <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)] rounded-b-2xl" style={{ paddingTop: "48px", paddingLeft: "48px" }}>
+      {/* Main Content - обертка создает окантовку через padding */}
+      <div style={{ 
+        paddingLeft: `${BORDER_LEFT}px`, 
+        paddingRight: `${BORDER_RIGHT}px`, 
+        paddingBottom: `${BORDER_BOTTOM}px`, 
+        paddingTop: ENABLE_TOP_BORDER ? `${BORDER_TOP}px` : "0px"
+      }}>
+        <main 
+          className={ENABLE_TOP_BORDER ? "bg-white rounded-2xl overflow-y-auto" : "bg-white rounded-b-2xl overflow-y-auto"}
+          style={{ 
+            height: ENABLE_TOP_BORDER ? `calc(100vh - 56px - ${BORDER_TOP}px - ${BORDER_BOTTOM}px)` : `calc(100vh - 56px - ${BORDER_BOTTOM}px)`,
+            paddingTop: "48px", 
+            paddingLeft: "48px", 
+            paddingRight: "48px", 
+            paddingBottom: "48px" 
+          }}
+        >
         {error && (
           <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 mb-8 rounded">
             {error}
@@ -631,7 +658,8 @@ export default function BoardsPage() {
             </div>
           </section>
         )}
-      </main>
+        </main>
+      </div>
 
       {/* Модалка создания доски */}
       {showCreateModal && (
