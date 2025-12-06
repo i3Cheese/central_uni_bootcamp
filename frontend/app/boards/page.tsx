@@ -589,7 +589,7 @@ export default function BoardsPage() {
     return (
       <div className="min-h-screen bg-[#5a5a5a]">
         <Header />
-        <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)] flex items-center justify-center">
+        <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)] rounded-b-2xl flex items-center justify-center">
           <span className="text-gray-500 text-lg">Загрузка...</span>
         </main>
       </div>
@@ -602,7 +602,7 @@ export default function BoardsPage() {
       <Header />
 
       {/* Main Content */}
-      <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)]" style={{ paddingTop: "48px", paddingLeft: "48px" }}>
+      <main className="mx-4 bg-white min-h-[calc(100vh-56px-16px)] rounded-b-2xl" style={{ paddingTop: "48px", paddingLeft: "48px" }}>
         {error && (
           <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 mb-8 rounded">
             {error}
