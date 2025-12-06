@@ -33,7 +33,7 @@ interface ShareListResponse {
   shares: ShareInfo[];
 }
 
-import { BORDER_LEFT, BORDER_RIGHT, BORDER_BOTTOM, BORDER_TOP, ENABLE_TOP_BORDER } from "../constants/borders";
+import { BORDER_LEFT, BORDER_RIGHT, BORDER_BOTTOM, BORDER_TOP, ENABLE_TOP_BORDER, HEADER_PADDING_X } from "../constants/borders";
 
 export default function BoardsPage() {
   const router = useRouter();
@@ -544,10 +544,10 @@ export default function BoardsPage() {
 
   // Компонент хедера
   const Header = () => (
-    <header className="bg-white/90 backdrop-blur-sm border-b border-indigo-200/40 p-4">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-        <Link href="/" className="text-slate-700 text-xl tracking-wide hover:text-indigo-600 transition-colors font-medium">
-          Mirumir
+    <header className="bg-white/90 backdrop-blur-sm border-b border-indigo-200/40 p-4 flex items-center">
+      <div className="flex flex-wrap items-center justify-between gap-4 w-full" style={{ paddingLeft: `${HEADER_PADDING_X}px`, paddingRight: `${HEADER_PADDING_X}px` }}>
+        <Link href="/" className="text-black text-2xl font-normal tracking-wide hover:text-indigo-600 transition-colors leading-none">
+          MIRUMIR
         </Link>
         {userLogin && (
           <div ref={userMenuRef} className="relative">

@@ -7,5 +7,6 @@ export const BORDER_RIGHT = 20;  // Толщина окантовки справ
 export const BORDER_BOTTOM = 22; // Толщина окантовки снизу (в пикселях) - МЕНЯЙТЕ ЭТО ЗНАЧЕНИЕ!
 export const BORDER_TOP = 22;    // Толщина окантовки сверху (в пикселях)
 export const ENABLE_TOP_BORDER = true; // Включить/выключить окантовку сверху
+export const HEADER_PADDING_X = 25; // Горизонтальные отступы в header (в пикселях)
 // ============================================
 
