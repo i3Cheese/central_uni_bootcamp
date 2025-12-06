@@ -77,8 +77,14 @@ function AuthContent() {
       }
 
       if (!response.ok) {
-        const errorData: { detail: ErrorDetail } = await response.json();
-        throw new Error(errorData.detail?.message || "Ошибка авторизации");
+        const errorData: { detail: ErrorDetail | string } = await response.json();
+        let errorMessage = "Ошибка авторизации";
+        if (typeof errorData.detail === "object" && errorData.detail !== null) {
+          errorMessage = errorData.detail.message || errorMessage;
+        } else if (typeof errorData.detail === "string") {
+          errorMessage = errorData.detail;
+        }
+        throw new Error(errorMessage);
       }
 
       const data: LoginResponse = await response.json();
