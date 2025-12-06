@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface RegisterResponse {
   userId: number;
@@ -22,6 +22,7 @@ interface ErrorDetail {
 }
 
 export default function RegisterPage() {
+  console.log("API_URL", API_URL);
   const router = useRouter();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");

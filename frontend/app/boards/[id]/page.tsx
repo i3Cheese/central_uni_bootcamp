@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import ResizableSticker from '../../components/sticker';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface StickerData {
   id: string;

@@ -21,7 +21,12 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 # CORS middleware для работы с фронтендом
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://mirumir.i3cheese.ru",
+        "https://mirumir.i3cheese.ru",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,5 +36,6 @@ app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/")
+@app.get("/api")
 def root():
     return {"message": "Hello World"}
