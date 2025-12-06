@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from core.database import Base
-from sqlalchemy import ForeignKey, String, DateTime, UniqueConstraint, func
+from sqlalchemy import ForeignKey, DateTime, UniqueConstraint, func, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .permission import Permission
@@ -22,8 +22,8 @@ class Access(Base):
     board_id: Mapped[int] = mapped_column(
         ForeignKey("boards.board_id", ondelete="CASCADE"), nullable=False
     )
-    permission: Mapped[str] = mapped_column(
-        String,
+    permission: Mapped[Permission] = mapped_column(
+        SQLEnum(Permission),
         nullable=False,
         default=Permission.VIEW,
         comment="Уровень доступа: view (только просмотр), edit (просмотр и редактирование)",

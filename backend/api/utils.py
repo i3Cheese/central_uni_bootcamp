@@ -38,10 +38,7 @@ async def get_user_permission(
         access = result.scalar_one_or_none()
     
     if access:
-        raw_perm = access.permission
-        if raw_perm in Permission._value2member_map_:
-            return Permission(raw_perm)
-        return None
+        return access.permission
     
     if board.is_public:
         return Permission.VIEW

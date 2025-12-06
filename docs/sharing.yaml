@@ -17,8 +17,8 @@ paths:
     post:
       tags:
         - Sharing
-      summary: Предоставление доступа к доске
-      description: Выдача прав пользователю на доступ к доске
+      summary: Предоставление или обновление доступа к доске
+      description: Выдача прав пользователю на доступ к доске. Если доступ уже существует, он будет обновлен.
       security:
         - bearerAuth: []
       parameters:
@@ -35,13 +35,13 @@ paths:
             schema:
               type: object
               required:
-                - userId
+                - userLogin
                 - permission
               properties:
-                userId:
-                  type: integer
-                  example: 2
-                  description: ID пользователя, которому предоставляется доступ
+                userLogin:
+                  type: string
+                  example: "user2@example.com"
+                  description: Логин пользователя, которому предоставляется доступ
                 permission:
                   type: string
                   enum: [view, edit]
@@ -149,89 +149,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
-  /boards/{boardId}/share/{userId}:
-    put:
-      tags:
-        - Sharing
-      summary: Изменение уровня доступа
-      description: Обновление прав пользователя на доску
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: boardId
-          in: path
-          required: true
-          description: ID доски
-          schema:
-            type: integer
-        - name: userId
-          in: path
-          required: true
-          description: ID пользователя
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - permission
-              properties:
-                permission:
-                  type: string
-                  enum: [view, edit]
-                  example: "edit"
-                  description: Новый уровень доступа (view или edit)
-      responses:
-        '200':
-          description: Уровень доступа успешно изменен
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  boardId:
-                    type: integer
-                    example: 1
-                  userId:
-                    type: integer
-                    example: 2
-                  permission:
-                    type: string
-                    enum: [view, edit]
-                    example: "edit"
-                  updatedAt:
-                    type: string
-                    format: date-time
-                    example: "2024-01-15T12:00:00Z"
-        '400':
-          description: Некорректные данные
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Не авторизован
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Нет прав на управление доступом
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Доска, пользователь или доступ не найдены
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
     delete:
       tags:
         - Sharing
@@ -246,19 +163,19 @@ paths:
           description: ID доски
           schema:
             type: integer
-        - name: userId
-          in: path
-          required: true
-          description: ID пользователя
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              properties: {}
+              required:
+                - userLogin
+              properties:
+                userLogin:
+                  type: string
+                  example: "user2@example.com"
+                  description: Логин пользователя, у которого отзывается доступ
       responses:
         '204':
           description: Доступ успешно отозван

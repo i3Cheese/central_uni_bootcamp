@@ -5,10 +5,9 @@ from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
 from api.deps import BoardWithAccess, CurrentUser, SessionDep, BoardWithEdit, BoardWithOwner
-from api.utils import get_user_permission, check_board_access
+from api.utils import get_user_permission
 from models.access import Access
 from models.board import Board
-from models.permission import Permission
 from models.sticker import Sticker
 from schemas.board import (
     BoardCreate,
