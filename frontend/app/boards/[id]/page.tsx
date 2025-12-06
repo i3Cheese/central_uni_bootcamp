@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import ResizableSticker from '../../components/sticker';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface StickerData {
   id: string;
   text: string;
@@ -178,7 +180,7 @@ export default function BoardPage() {
       
       // Using a relative URL that will be handled by Next.js API routes
       // or your actual backend if CORS is configured
-      const response = await fetch(`/api/boards/${boardId}`, {
+      const response = await fetch(`${API_URL}/api/v1/boards/${boardId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
