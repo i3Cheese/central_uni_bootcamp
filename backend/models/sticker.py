@@ -39,4 +39,4 @@ class Sticker(Base):
 
     # Relationships
     board: Mapped["Board"] = relationship("Board", back_populates="stickers")
-    creator: Mapped["User"] = relationship("User", foreign_keys=[created_by])
+    creator: Mapped["User"] = relationship("User", foreign_keys=[created_by], overlaps="created_stickers")

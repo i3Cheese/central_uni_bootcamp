@@ -27,8 +27,8 @@ SessionDep = Annotated[AsyncSession, Depends(get_db)]
 
 
 async def get_current_user(
+    db: SessionDep,
     token: str = Depends(oauth2_scheme),
-    db: SessionDep = Depends(),
 ) -> User:
     """
     Получает текущего пользователя из JWT токена.
@@ -75,8 +75,8 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 async def get_board_by_id(
+    db: SessionDep,
     board_id: int = Path(..., description="ID доски"),
-    db: SessionDep = Depends(),
 ) -> Board:
     """
     Получает доску по ID.
@@ -104,9 +104,10 @@ async def get_board_by_id(
 
 
 async def get_board_with_access(
+    db: SessionDep,
+    current_user: CurrentUser,
     board: Board = Depends(get_board_by_id),
-    current_user: CurrentUser = Depends(),
-    db: SessionDep = Depends(),
+    
 ) -> tuple[Board, Permission]:
     """
     Получает доску и проверяет доступ пользователя к ней.
@@ -122,9 +123,9 @@ async def get_board_with_access(
 
 
 async def require_board_owner(
+    db: SessionDep,
+    current_user: CurrentUser,
     board: Board = Depends(get_board_by_id),
-    current_user: CurrentUser = Depends(),
-    db: SessionDep = Depends(),
 ) -> tuple[Board, Permission]:
     """
     Проверяет, что пользователь является владельцем доски.
@@ -142,9 +143,9 @@ async def require_board_owner(
 
 
 async def require_board_edit(
+    db: SessionDep,
+    current_user: CurrentUser,
     board: Board = Depends(get_board_by_id),
-    current_user: CurrentUser = Depends(),
-    db: SessionDep = Depends(),
 ) -> tuple[Board, Permission]:
     """
     Проверяет, что пользователь имеет права на редактирование доски (edit или owner).
