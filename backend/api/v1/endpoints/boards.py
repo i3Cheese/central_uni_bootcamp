@@ -290,7 +290,7 @@ async def update_board(
         board.background_color = new_data.backgroundColor
 
     await db.commit()
-    await db.refresh(board, ["creator"])
+    await db.refresh(board, ["creator", "updated_at"])
 
     if board.creator is None:
         raise HTTPException(
