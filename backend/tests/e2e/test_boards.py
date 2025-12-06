@@ -202,3 +202,5 @@ async def test_delete_board(client: AsyncClient):
     )
     assert get_response.status_code == 404
 
+
+
