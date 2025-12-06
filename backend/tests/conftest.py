@@ -1,59 +1,76 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
+import pytest_asyncio
+import os
+import uuid
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.pool import NullPool
 
 from main import app
-from core.database import Base
 from api.deps import get_db
+from core.config import settings
 
-# Use in-memory SQLite for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+# Для тестов используем localhost вместо postgres (для Docker)
+# Можно переопределить через переменную окружения TEST_DATABASE_URL
+test_db_url = os.getenv(
+    "TEST_DATABASE_URL",
+    settings.DATABASE_URL.replace("postgres:", "localhost:").replace("postgresql+asyncpg://", "postgresql+asyncpg://")
 )
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Используем БД из .env или тестовую БД
+# Для тестов используем транзакции с откатом для изоляции
+engine = create_async_engine(
+    test_db_url,
+    echo=False,
+    poolclass=NullPool,  # Не используем пул для тестов
+)
+TestingSessionLocal = async_sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
-@pytest.fixture(scope="session")
-def db_engine():
-    # Create tables
-    Base.metadata.create_all(bind=engine)
-    yield engine
-    Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture(scope="function")
-def db(db_engine):
+@pytest_asyncio.fixture(scope="function")
+async def db():
     """
     Create a new database session for a test.
-    Rollback the transaction after the test is complete.
+    Используем транзакцию с откатом для изоляции тестов.
     """
-    connection = db_engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
+    async with TestingSessionLocal() as session:
+        # Начинаем транзакцию
+        transaction = await session.begin()
+        try:
+            yield session
+        finally:
+            # Откатываем транзакцию после теста
+            if transaction.is_active:
+                await transaction.rollback()
+            await session.close()
 
-    yield session
 
-    session.close()
-    transaction.rollback()
-    connection.close()
-
-
-@pytest.fixture(scope="function")
-def client(db):
+@pytest_asyncio.fixture(scope="function")
+async def client(db: AsyncSession):
     """
-    Create a TestClient that uses the override_get_db dependency.
+    Create an AsyncClient that uses the override_get_db dependency.
     """
-
-    def override_get_db():
+    async def override_get_db():
         yield db
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        yield c
+    
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+    
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def random_login():
+    """Генерирует уникальный логин для тестов."""
+    return f"test_{uuid.uuid4().hex[:8]}@example.com"
+
+
+@pytest.fixture
+def random_password():
+    """Генерирует пароль для тестов."""
+    return f"TestPass_{uuid.uuid4().hex[:8]}!"
