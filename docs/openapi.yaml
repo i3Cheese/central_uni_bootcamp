@@ -57,8 +57,6 @@ paths:
   # Sharing endpoints
   /boards/{boardId}/share:
     $ref: 'sharing.yaml#/paths/~1boards~1{boardId}~1share'
-  /boards/{boardId}/share/{userId}:
-    $ref: 'sharing.yaml#/paths/~1boards~1{boardId}~1share~1{userId}'
 
 components:
   securitySchemes:
