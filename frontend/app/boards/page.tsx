@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -19,6 +19,18 @@ interface BoardSummary {
 
 interface BoardsResponse {
   boards: BoardSummary[];
+}
+
+interface ShareInfo {
+  userId: number;
+  userLogin: string;
+  permission: "view" | "edit";
+  grantedAt: string;
+}
+
+interface ShareListResponse {
+  boardId: number;
+  shares: ShareInfo[];
 }
 
 export default function BoardsPage() {
@@ -48,6 +60,10 @@ export default function BoardsPage() {
   const [isSharing, setIsSharing] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
   const [shareSuccess, setShareSuccess] = useState<string | null>(null);
+  const [shareList, setShareList] = useState<ShareInfo[]>([]);
+  const [isLoadingShares, setIsLoadingShares] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -259,7 +275,46 @@ export default function BoardsPage() {
     setCreateError(null);
   };
 
-  // Шаринг доски
+  // Загрузка списка пользователей с доступом
+  const loadShareList = useCallback(async () => {
+    if (!shareBoardId) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setIsLoadingShares(true);
+    setShareError(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/boards/${shareBoardId}/share`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail?.message || "Ошибка загрузки списка пользователей");
+      }
+
+      const data: ShareListResponse = await response.json();
+      setShareList(data.shares || []);
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : "Произошла ошибка");
+    } finally {
+      setIsLoadingShares(false);
+    }
+  }, [shareBoardId]);
+
+  // Загрузка списка при открытии модалки
+  useEffect(() => {
+    if (shareBoardId) {
+      loadShareList();
+    }
+  }, [shareBoardId, loadShareList]);
+
+  // Шаринг доски (добавление или обновление доступа)
   const handleShareBoard = async () => {
     if (!shareUserId.trim()) {
       setShareError("Введите логин пользователя");
@@ -294,10 +349,89 @@ export default function BoardsPage() {
       setShareSuccess(`Доступ успешно предоставлен пользователю ${shareUserId.trim()}`);
       setShareUserId("");
       setSharePermission("view");
+      // Обновляем список пользователей
+      await loadShareList();
     } catch (err) {
       setShareError(err instanceof Error ? err.message : "Произошла ошибка");
     } finally {
       setIsSharing(false);
+    }
+  };
+
+  // Обновление доступа пользователя
+  const handleUpdatePermission = async (userLogin: string, permission: "view" | "edit") => {
+    const token = localStorage.getItem("token");
+    if (!token || !shareBoardId) return;
+
+    setEditingUserId(shareList.find(s => s.userLogin === userLogin)?.userId || null);
+    setShareError(null);
+    setShareSuccess(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/boards/${shareBoardId}/share`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userLogin: userLogin,
+          permission: permission,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail?.message || "Ошибка обновления доступа");
+      }
+
+      setShareSuccess(`Доступ пользователя ${userLogin} успешно обновлен`);
+      // Обновляем список пользователей
+      await loadShareList();
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : "Произошла ошибка");
+    } finally {
+      setEditingUserId(null);
+    }
+  };
+
+  // Удаление доступа пользователя
+  const handleRevokeAccess = async (userLogin: string) => {
+    if (!confirm(`Вы уверены, что хотите отозвать доступ у пользователя ${userLogin}?`)) {
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token || !shareBoardId) return;
+
+    setDeletingUserId(shareList.find(s => s.userLogin === userLogin)?.userId || null);
+    setShareError(null);
+    setShareSuccess(null);
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/boards/${shareBoardId}/share`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userLogin: userLogin,
+        }),
+      });
+
+      if (!response.ok && response.status !== 204) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail?.message || "Ошибка отзыва доступа");
+      }
+
+      setShareSuccess(`Доступ пользователя ${userLogin} успешно отозван`);
+      // Обновляем список пользователей
+      await loadShareList();
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : "Произошла ошибка");
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
@@ -308,6 +442,9 @@ export default function BoardsPage() {
     setSharePermission("view");
     setShareError(null);
     setShareSuccess(null);
+    setShareList([]);
+    setEditingUserId(null);
+    setDeletingUserId(null);
   };
 
   const BoardCard = ({ board, showMenu = true }: { board: BoardSummary; showMenu?: boolean }) => (
@@ -700,15 +837,15 @@ export default function BoardsPage() {
       {shareBoardId && getShareBoard() && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => !isSharing && closeShareModal()}
+          onClick={() => !isSharing && !isLoadingShares && closeShareModal()}
         >
           <div
-            style={{ padding: "40px" }}
-            className="bg-white rounded-2xl w-full max-w-lg shadow-xl"
+            style={{ padding: "40px", maxHeight: "90vh", overflowY: "auto" }}
+            className="bg-white rounded-2xl w-full max-w-2xl shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ marginBottom: "16px" }} className="text-3xl font-light text-black">
-              Поделиться доской
+              Управление доступом
             </h2>
 
             <p style={{ marginBottom: "32px" }} className="text-gray-600">
@@ -727,8 +864,83 @@ export default function BoardsPage() {
               </div>
             )}
 
+            {/* Список пользователей с доступом */}
             <div style={{ marginBottom: "32px" }}>
-              {/* Логин пользователя */}
+              <h3 style={{ marginBottom: "16px" }} className="text-xl font-medium text-gray-800">
+                Пользователи с доступом
+              </h3>
+
+              {isLoadingShares ? (
+                <div className="text-center py-8 text-gray-500">
+                  Загрузка списка пользователей...
+                </div>
+              ) : shareList.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 border border-gray-200 rounded-xl">
+                  Нет пользователей с доступом к доске
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {shareList.map((share) => (
+                    <div
+                      key={share.userId}
+                      className="border border-gray-200 rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800 mb-1">{share.userLogin}</div>
+                        <div className="text-sm text-gray-500">
+                          {share.permission === "edit" ? "Редактирование" : "Просмотр"}
+                          {" • "}
+                          Предоставлен {new Date(share.grantedAt).toLocaleDateString("ru-RU")}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {/* Изменение прав доступа */}
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleUpdatePermission(share.userLogin, "view")}
+                            disabled={editingUserId === share.userId || share.permission === "view"}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50 ${share.permission === "view"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              }`}
+                            title="Просмотр"
+                          >
+                            Просмотр
+                          </button>
+                          <button
+                            onClick={() => handleUpdatePermission(share.userLogin, "edit")}
+                            disabled={editingUserId === share.userId || share.permission === "edit"}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50 ${share.permission === "edit"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              }`}
+                            title="Редактирование"
+                          >
+                            Редактирование
+                          </button>
+                        </div>
+                        {/* Удаление доступа */}
+                        <button
+                          onClick={() => handleRevokeAccess(share.userLogin)}
+                          disabled={deletingUserId === share.userId}
+                          className="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Удалить доступ"
+                        >
+                          {deletingUserId === share.userId ? "..." : "✕"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Форма добавления нового пользователя */}
+            <div style={{ marginBottom: "32px", paddingTop: "32px", borderTop: "1px solid #e5e7eb" }}>
+              <h3 style={{ marginBottom: "16px" }} className="text-xl font-medium text-gray-800">
+                Добавить пользователя
+              </h3>
+
               <div style={{ marginBottom: "24px" }}>
                 <label style={{ marginBottom: "12px", display: "block" }} className="text-base text-gray-600">
                   Логин пользователя <span className="text-red-500">*</span>
@@ -741,11 +953,15 @@ export default function BoardsPage() {
                   disabled={isSharing}
                   style={{ height: "56px", padding: "0 20px" }}
                   className="w-full bg-[#f5f5f5] text-gray-700 text-base rounded-xl outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isSharing && shareUserId.trim()) {
+                      handleShareBoard();
+                    }
+                  }}
                 />
               </div>
 
-              {/* Уровень доступа */}
-              <div>
+              <div style={{ marginBottom: "24px" }}>
                 <label style={{ marginBottom: "12px", display: "block" }} className="text-base text-gray-600">
                   Уровень доступа
                 </label>
@@ -774,24 +990,25 @@ export default function BoardsPage() {
                   </button>
                 </div>
               </div>
+
+              <button
+                onClick={handleShareBoard}
+                disabled={isSharing || !shareUserId.trim()}
+                style={{ height: "56px" }}
+                className="w-full bg-[#5a5a5a] text-white text-base rounded-xl hover:bg-[#4a4a4a] transition-colors disabled:opacity-50"
+              >
+                {isSharing ? "Отправка..." : "Добавить пользователя"}
+              </button>
             </div>
 
             <div style={{ display: "flex", gap: "16px" }}>
               <button
                 onClick={closeShareModal}
-                disabled={isSharing}
+                disabled={isSharing || isLoadingShares}
                 style={{ height: "56px" }}
                 className="flex-1 border border-gray-300 text-gray-600 text-base rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 Закрыть
-              </button>
-              <button
-                onClick={handleShareBoard}
-                disabled={isSharing}
-                style={{ height: "56px" }}
-                className="flex-1 bg-[#5a5a5a] text-white text-base rounded-xl hover:bg-[#4a4a4a] transition-colors disabled:opacity-50"
-              >
-                {isSharing ? "Отправка..." : "Поделиться"}
               </button>
             </div>
           </div>
