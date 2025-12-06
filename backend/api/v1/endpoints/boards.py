@@ -5,9 +5,10 @@ from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
 from api.deps import BoardWithAccess, CurrentUser, SessionDep
-from api.utils import get_user_permission
+from api.utils import get_user_permission, check_board_access
 from models.access import Access
 from models.board import Board
+from models.permission import Permission
 from models.sticker import Sticker
 from schemas.board import (
     BoardCreate,
@@ -16,6 +17,7 @@ from schemas.board import (
     BoardResponse,
     BoardSummary,
     StickerResponse,
+    BoardUpdate,
 )
 
 router = APIRouter()
@@ -29,9 +31,9 @@ router = APIRouter()
     description="Создание новой доски для текущего пользователя",
 )
 async def create_board(
-    board_data: BoardCreate,
-    current_user: CurrentUser,
-    db: SessionDep,
+        board_data: BoardCreate,
+        current_user: CurrentUser,
+        db: SessionDep,
 ) -> BoardResponse:
     """
     Создание новой доски.
@@ -70,19 +72,19 @@ async def create_board(
     description="Получение списка досок текущего пользователя (собственных и расшаренных)",
 )
 async def get_boards(
-    current_user: CurrentUser,
-    db: SessionDep,
-    board_filter: Literal["own", "shared", "all"] = Query(
-        default="all",
-        alias="filter",
-        description="Фильтр досок: own (только свои), shared (только расшаренные), all (все)",
-    ),
-    page: int = Query(default=1, ge=1, description="Номер страницы"),
-    limit: int = Query(default=20, ge=1, le=100, description="Количество элементов на странице"),
-    sortBy: Literal["createdAt", "updatedAt", "title"] = Query(
-        default="updatedAt", description="Поле для сортировки"
-    ),
-    sortOrder: Literal["asc", "desc"] = Query(default="desc", description="Порядок сортировки"),
+        current_user: CurrentUser,
+        db: SessionDep,
+        board_filter: Literal["own", "shared", "all"] = Query(
+            default="all",
+            alias="filter",
+            description="Фильтр досок: own (только свои), shared (только расшаренные), all (все)",
+        ),
+        page: int = Query(default=1, ge=1, description="Номер страницы"),
+        limit: int = Query(default=20, ge=1, le=100, description="Количество элементов на странице"),
+        sortBy: Literal["createdAt", "updatedAt", "title"] = Query(
+            default="updatedAt", description="Поле для сортировки"
+        ),
+        sortOrder: Literal["asc", "desc"] = Query(default="desc", description="Порядок сортировки"),
 ) -> BoardListResponse:
     """
     Получение списка досок с фильтрацией, пагинацией и сортировкой.
@@ -107,19 +109,19 @@ async def get_boards(
     else:  # all
         # Получаем все доски: свои + расшаренные
         conditions = [Board.creator_id == current_user.user_id]
-        
+
         # Получаем ID расшаренных досок одним запросом
         shared_board_ids_query = select(Access.board_id).where(
             Access.user_id == current_user.user_id
         )
         shared_board_ids_result = await db.execute(shared_board_ids_query)
         shared_board_ids = [row[0] for row in shared_board_ids_result.all()]
-        
+
         if shared_board_ids:
             conditions.append(Board.board_id.in_(shared_board_ids))
-        
+
         base_query = select(Board).where(or_(*conditions))
-    
+
     # Применяем сортировку
     if sortBy == "title":
         # Используем lower() для сортировки без учета регистра и coalesce для обработки NULL
@@ -129,26 +131,26 @@ async def get_boards(
             "createdAt": Board.created_at,
             "updatedAt": Board.updated_at,
         }[sortBy]
-    
+
     if sortOrder == "asc":
         base_query = base_query.order_by(sort_column.asc())
     else:
         base_query = base_query.order_by(sort_column.desc())
-    
+
     # Применяем пагинацию
     offset = (page - 1) * limit
     base_query = base_query.offset(offset).limit(limit)
-    
+
     # Загружаем создателя для каждой доски
     base_query = base_query.options(selectinload(Board.creator))
-    
+
     # Выполняем запрос
     result = await db.execute(base_query)
     boards = result.scalars().unique().all()
-    
+
     if not boards:
         return BoardListResponse(boards=[])
-    
+
     # Получаем все Access для этих досок одним запросом (избегаем N+1)
     board_ids = [board.board_id for board in boards]
     accesses_query = select(Access).where(
@@ -157,7 +159,7 @@ async def get_boards(
     )
     accesses_result = await db.execute(accesses_query)
     accesses_cache = {access.board_id: access for access in accesses_result.scalars().all()}
-    
+
     # Подсчитываем стикеры одним запросом (GROUP BY)
     sticker_counts_query = (
         select(Sticker.board_id, func.count(Sticker.sticker_id).label("count"))
@@ -166,18 +168,18 @@ async def get_boards(
     )
     sticker_counts_result = await db.execute(sticker_counts_query)
     sticker_counts = {row[0]: row[1] for row in sticker_counts_result.all()}
-    
+
     # Подготавливаем данные для ответа
     board_summaries = []
     for board in boards:
         permission = await get_user_permission(current_user, board, db, accesses_cache=accesses_cache)
-        
+
         if permission is None:
             continue
-        
+
         sticker_count = sticker_counts.get(board.board_id, 0)
         creator_login = board.creator.login
-        
+
         board_summaries.append(
             BoardSummary(
                 boardId=board.board_id,
@@ -190,7 +192,7 @@ async def get_boards(
                 updatedAt=board.updated_at,
             )
         )
-    
+
     return BoardListResponse(boards=board_summaries)
 
 
@@ -201,8 +203,8 @@ async def get_boards(
     description="Получение полной информации о доске, включая все стикеры",
 )
 async def get_board(
-    board_with_access: BoardWithAccess,
-    db: SessionDep,
+        board_with_access: BoardWithAccess,
+        db: SessionDep,
 ) -> BoardDetail:
     """
     Получение доски по ID со всеми стикерами.
@@ -211,16 +213,15 @@ async def get_board(
     - Возвращает полную информацию о доске и все стикеры
     """
     board, permission = board_with_access
-    
+
     await db.refresh(board, ["creator", "stickers"])
-    
+
     if board.creator is None:
-        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Board creator not found",
         )
-    
+
     stickers = []
     for sticker in board.stickers:
         stickers.append(
@@ -239,9 +240,9 @@ async def get_board(
                 updatedAt=sticker.updated_at,
             )
         )
-    
+
     creator_login = board.creator.login
-    
+
     return BoardDetail(
         boardId=board.board_id,
         title=board.title or "",
@@ -255,3 +256,46 @@ async def get_board(
         permission=permission.value,
     )
 
+
+@router.put(
+    "/{board_id}",
+    response_model=BoardResponse,
+    summary="Обновление доски",
+    description="Обновление настроек доски текущим пользователем",
+)
+async def update_board(
+        board_id: int,
+        board_data: BoardUpdate,
+        current_user: CurrentUser,
+        db: SessionDep,
+) -> BoardResponse:
+    """
+    Обновление существующей доски.
+
+    - title: Название доски (обязательно, 1-200 символов)
+    - description: Описание доски (опционально, до 1000 символов)
+    - backgroundColor: Цвет фона доски в hex формате (опционально)
+    """
+
+    board = await db.get(Board, board_id)
+    if board is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Board not found")
+
+    await check_board_access(current_user, board, db, Permission.EDIT)
+
+    board.title = board_data.title
+    board.description = board_data.description
+    board.background_color = board_data.backgroundColor
+
+    await db.commit()
+
+    return BoardResponse(
+        boardId=board.board_id,
+        title=board.title,
+        description=board.description,
+        ownerId=board.creator_id,
+        ownerName=board.creator.login,
+        backgroundColor=board.background_color,
+        createdAt=board.created_at,
+        updatedAt=board.updated_at,
+    )

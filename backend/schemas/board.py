@@ -143,3 +143,33 @@ class BoardDetail(BaseModel):
 
     model_config = {"from_attributes": True}
 
+
+class BoardUpdate(BaseModel):
+    """Схема запроса на обновление доски."""
+
+    title: str = Field(
+        ...,
+        min_length=1,
+        max_length=200,
+        description="Обновленное название доски",
+        examples=["Обновленное название"],
+    )
+    description: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Обновленное описание доски",
+        examples=["Обновленное описание"],
+    )
+    backgroundColor: str | None = Field(
+        default=None,
+        pattern="^#[0-9A-Fa-f]{6}$",
+        description="Обновленный цвет фона доски (hex формат)",
+        examples=["#F0F0F0"],
+    )
+
+    @field_validator("backgroundColor")
+    @classmethod
+    def validate_background_color(cls, v: str | None) -> str | None:
+        if v is not None and not v.startswith("#"):
+            raise ValueError("Background color must be in hex format (e.g., #FFFFFF)")
+        return v
