@@ -107,7 +107,6 @@ async def get_board_with_access(
     db: SessionDep,
     current_user: CurrentUser,
     board: Board = Depends(get_board_by_id),
-    
 ) -> tuple[Board, Permission]:
     """
     Получает доску и проверяет доступ пользователя к ней.

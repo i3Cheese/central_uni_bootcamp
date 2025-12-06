@@ -1,6 +1,30 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
+  const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/boards");
+    } else {
+      setIsChecking(false);
+    }
+  }, [router]);
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-[#5a5a5a] flex items-center justify-center">
+        <span className="text-[#a0a0a0] text-lg">Загрузка...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#5a5a5a]">
       {/* Header */}

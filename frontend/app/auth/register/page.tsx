@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -28,6 +28,14 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Проверяем авторизацию
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/boards");
+    }
+  }, [router]);
 
   const handleRegister = async () => {
     // Валидация

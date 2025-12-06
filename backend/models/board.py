@@ -37,8 +37,8 @@ class Board(Base):
         "User", back_populates="created_boards", foreign_keys=[creator_id]
     )
     accesses: Mapped[list["Access"]] = relationship(
-        "Access", back_populates="board"
+        "Access", back_populates="board", cascade="all, delete-orphan"
     )
     stickers: Mapped[list["Sticker"]] = relationship(
-        "Sticker", back_populates="board"
+        "Sticker", back_populates="board", cascade="all, delete-orphan"
     )
