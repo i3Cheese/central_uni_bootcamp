@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select, or_
 from sqlalchemy.orm import selectinload
 
-from api.deps import BoardWithAccess, CurrentUser, SessionDep
+from api.deps import BoardWithAccess, CurrentUser, SessionDep, BoardWithEdit
 from api.utils import get_user_permission, check_board_access
 from models.access import Access
 from models.board import Board
@@ -264,9 +264,8 @@ async def get_board(
     description="Обновление настроек доски текущим пользователем",
 )
 async def update_board(
-        board_id: int,
-        board_data: BoardUpdate,
-        current_user: CurrentUser,
+        board_with_edit: BoardWithEdit,
+        new_data: BoardUpdate,
         db: SessionDep,
 ) -> BoardResponse:
     """
@@ -277,17 +276,14 @@ async def update_board(
     - backgroundColor: Цвет фона доски в hex формате (опционально)
     """
 
-    board = await db.get(Board, board_id)
-    if board is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Board not found")
+    board, permission = board_with_edit
 
-    await check_board_access(current_user, board, db, Permission.EDIT)
-
-    board.title = board_data.title
-    board.description = board_data.description
-    board.background_color = board_data.backgroundColor
+    board.title = new_data.title
+    board.description = new_data.description
+    board.background_color = new_data.backgroundColor
 
     await db.commit()
+    await db.refresh(board, ["creator"])
 
     return BoardResponse(
         boardId=board.board_id,
