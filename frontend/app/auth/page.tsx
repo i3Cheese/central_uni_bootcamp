@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface LoginResponse {
   userId: number;
@@ -72,7 +72,7 @@ function AuthContent() {
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
-        throw new Error(`Ошибка сервера: получен не-JSON ответ. Проверьте, что backend запущен на ${API_URL || "http://localhost:8000"}`);
+        throw new Error(`Ошибка сервера: получен не-JSON ответ.`);
       }
 
       if (!response.ok) {

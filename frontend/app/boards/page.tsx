@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface BoardSummary {
   boardId: number;
@@ -147,7 +147,7 @@ export default function BoardsPage() {
         const ownContentType = ownResponse.headers.get("content-type");
         if (!ownContentType || !ownContentType.includes("application/json")) {
           const text = await ownResponse.text();
-          throw new Error(`Ошибка сервера: получен не-JSON ответ. Проверьте, что backend запущен на ${API_URL || "http://localhost:8000"}`);
+          throw new Error(`Ошибка сервера: получен не-JSON ответ.`);
         }
 
         if (!ownResponse.ok) {
