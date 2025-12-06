@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ResizableSticker from '../../components/sticker';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface StickerData {
   id: string;
@@ -102,16 +102,16 @@ const SAMPLE_BOARD_RESPONSE: BoardData = {
 export default function BoardPage() {
   const params = useParams();
   const boardId = params.id;
-  
+
   const [board, setBoard] = useState<BoardData | null>(null);
   const [stickers, setStickers] = useState<StickerData[]>([]);
   const [selectedColor, setSelectedColor] = useState('bg-yellow-200');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useSampleData, setUseSampleData] = useState(false);
-  
+
   const boardRef = useRef<HTMLDivElement>(null);
-  
+
   const canEdit = board?.permission === "edit" || board?.permission === "owner";
 
   const colors = [
@@ -140,7 +140,7 @@ export default function BoardPage() {
       '#000000': 'bg-gray-800',
       '#F5F5F5': 'bg-gray-50',
     };
-    
+
     return colorMap[hexColor.toUpperCase()] || 'bg-yellow-200';
   };
 
@@ -159,7 +159,7 @@ export default function BoardPage() {
       'bg-gray-800': '#000000',
       'bg-gray-50': '#F5F5F5',
     };
-    
+
     return colorMap[tailwindClass] || '#FFEB3B';
   };
 
@@ -190,18 +190,18 @@ export default function BoardPage() {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem('token');
       if (!token) {
         setError('Not authenticated');
         setIsLoading(false);
         return;
       }
-      
+
       const response = await fetch(`${API_URL}/api/v1/boards/${boardId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -210,35 +210,35 @@ export default function BoardPage() {
         // Добавляем mode для лучшей обработки CORS ошибок
         mode: 'cors',
       });
-      
+
       if (response.status === 401) {
         localStorage.removeItem('token');
         setError('Session expired. Please login again.');
         setIsLoading(false);
         return;
       }
-      
+
       if (response.status === 403) {
         setError('You do not have access to this board');
         setIsLoading(false);
         return;
       }
-      
+
       if (response.status === 404) {
         setError('Board not found');
         setIsLoading(false);
         return;
       }
-      
+
       if (!response.ok) {
         throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
-      
+
       const boardData: BoardData = await response.json();
       setBoard(boardData);
       setStickers(convertApiStickers(boardData.stickers));
       setUseSampleData(false);
-      
+
     } catch (err) {
       console.error('API call failed:', err);
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
@@ -264,19 +264,19 @@ export default function BoardPage() {
 
   const handleAddSticker = async () => {
     if (!board || !boardId || !canEdit) return;
-    
+
     // Get random position within board bounds
     const boardRect = boardRef.current?.getBoundingClientRect();
     let x = 50;
     let y = 50;
-    
+
     if (boardRect) {
       x = Math.random() * (boardRect.width - 200);
       y = Math.random() * (boardRect.height - 200);
     }
 
     const hexColor = tailwindToHex(selectedColor);
-    
+
     if (useSampleData) {
       const newSticker: StickerData = {
         id: `sticker-${Date.now()}`,
@@ -322,7 +322,7 @@ export default function BoardPage() {
         size: { width: newSticker.width || 256, height: newSticker.height || 128 },
         color: hexToTailwind(newSticker.color),
       };
-      
+
       setStickers([...stickers, convertedSticker]);
     } catch (err) {
       console.error('Failed to create sticker:', err);
@@ -331,10 +331,10 @@ export default function BoardPage() {
   };
 
   const handleTextChange = async (id: string, text: string) => {
-    setStickers(stickers.map(sticker => 
+    setStickers(stickers.map(sticker =>
       sticker.id === id ? { ...sticker, text } : sticker
     ));
-    
+
     if (useSampleData) {
       return;
     }
@@ -365,7 +365,7 @@ export default function BoardPage() {
     setStickers(stickers.map(sticker =>
       sticker.id === id ? { ...sticker, position } : sticker
     ));
-    
+
     if (useSampleData) {
       return;
     }
@@ -394,7 +394,7 @@ export default function BoardPage() {
     setStickers(stickers.map(sticker =>
       sticker.id === id ? { ...sticker, size } : sticker
     ));
-    
+
     if (useSampleData) {
       return;
     }
@@ -423,7 +423,7 @@ export default function BoardPage() {
     if (!confirm('Delete this sticker?')) return;
 
     setStickers(stickers.filter(sticker => sticker.id !== id));
-    
+
     if (useSampleData) {
       return;
     }
@@ -454,7 +454,7 @@ export default function BoardPage() {
     setStickers(stickers.map(sticker =>
       sticker.id === id ? { ...sticker, color } : sticker
     ));
-    
+
     if (useSampleData) {
       return;
     }
@@ -496,7 +496,7 @@ export default function BoardPage() {
   }
 
   return (
-    <div 
+    <div
       className="relative w-full h-screen overflow-hidden"
       style={{ backgroundColor: board?.backgroundColor || '#FFFFFF' }}
     >
@@ -504,8 +504,8 @@ export default function BoardPage() {
       {useSampleData && (
         <div className="absolute top-20 left-0 right-0 z-40 bg-yellow-500/90 backdrop-blur-sm p-2 text-center text-sm text-white">
           <div className="max-w-7xl mx-auto">
-            <span className="font-semibold">Development Mode:</span> Using sample data. 
-            <button 
+            <span className="font-semibold">Development Mode:</span> Using sample data.
+            <button
               onClick={handleRetryApi}
               className="ml-2 underline hover:no-underline"
             >
@@ -514,13 +514,13 @@ export default function BoardPage() {
           </div>
         </div>
       )}
-      
+
       {/* Error message */}
       {error && (
         <div className="absolute top-20 left-0 right-0 z-40 bg-red-500/90 backdrop-blur-sm p-4 text-center text-white">
           <div className="max-w-7xl mx-auto">
             <div className="font-semibold mb-2">Error: {error}</div>
-            <button 
+            <button
               onClick={handleRetryApi}
               className="bg-white text-red-500 px-4 py-2 rounded hover:bg-red-50 transition-colors"
             >
@@ -554,9 +554,8 @@ export default function BoardPage() {
                     <button
                       key={color.value}
                       onClick={() => setSelectedColor(color.value)}
-                      className={`w-6 h-6 rounded-full ${color.value} border-2 ${
-                        selectedColor === color.value ? color.border : 'border-transparent'
-                      } transition-all hover:scale-110`}
+                      className={`w-6 h-6 rounded-full ${color.value} border-2 ${selectedColor === color.value ? color.border : 'border-transparent'
+                        } transition-all hover:scale-110`}
                       title={color.name}
                     />
                   ))}
@@ -578,13 +577,13 @@ export default function BoardPage() {
       </div>
 
       {/* Board Container */}
-      <div 
+      <div
         ref={boardRef}
         className="relative w-full h-full pt-20"
       >
         {/* Grid Background Pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,#e0e0e0_1px,transparent_1px),linear-gradient(#e0e0e0_1px,transparent_1px)] bg-[size:20px_20px] opacity-20"></div>
-        
+
         {/* Stickers */}
         {stickers.map((sticker) => (
           <ResizableSticker
@@ -601,7 +600,7 @@ export default function BoardPage() {
             onDelete={canEdit ? handleDeleteSticker : undefined}
           />
         ))}
-        
+
         {/* Empty state */}
         {stickers.length === 0 && !isLoading && (
           <div className="absolute inset-0 flex items-center justify-center">

@@ -28,23 +28,27 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#5a5a5a]">
       {/* Header */}
-      <header style={{ padding: "0 24px" }} className="flex items-center justify-between h-14">
-        <span className="text-[#a0a0a0] text-xl tracking-wide">Mirumir</span>
-        
-        {/* Auth Buttons */}
-        <div className="flex h-full gap-4">
-          <Link
-            href="/auth"
-            className="h-full px-6 flex items-center text-[#a0a0a0] text-base hover:bg-[#4a4a4a] transition-colors"
-          >
-            Войти
+      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
+            Mirumir
           </Link>
-          <Link
-            href="/auth/register"
-            className="h-full px-6 flex items-center text-[#a0a0a0] text-base hover:bg-[#4a4a4a] transition-colors"
-          >
-            Регистрация
-          </Link>
+
+          {/* Auth Buttons */}
+          <div className="flex gap-4">
+            <Link
+              href="/auth"
+              className="text-gray-600 text-base hover:text-gray-900 transition-colors"
+            >
+              Войти
+            </Link>
+            <Link
+              href="/auth/register"
+              className="text-gray-600 text-base hover:text-gray-900 transition-colors"
+            >
+              Регистрация
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -54,7 +58,7 @@ export default function Home() {
         <h1 className="text-5xl font-normal text-black text-center mb-8 tracking-wide">
           MIRUMIR
         </h1>
-        
+
         {/* Subtitle */}
         <p className="text-lg text-[#666666] text-center mb-12 max-w-md">
           Сервис коллаборативных досок для совместной работы

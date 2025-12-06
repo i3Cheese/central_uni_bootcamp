@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface RegisterResponse {
   userId: number;
@@ -78,7 +78,7 @@ export default function RegisterPage() {
       }
 
       const data: RegisterResponse = await response.json();
-      
+
       // Перенаправляем на страницу входа после успешной регистрации
       router.push(`/auth?registered=${encodeURIComponent(data.login)}`);
     } catch (err) {
@@ -91,11 +91,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-[#5a5a5a]">
       {/* Header */}
-      <header style={{ padding: "0 24px" }} className="flex items-center justify-between h-14">
-        <Link href="/" className="text-[#a0a0a0] text-xl tracking-wide hover:text-white transition-colors">
-          Mirumir
-        </Link>
-        <span className="text-[#a0a0a0] text-xl tracking-wide">Auth Registration</span>
+      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
+            Mirumir
+          </Link>
+        </div>
       </header>
 
       {/* Main Content */}

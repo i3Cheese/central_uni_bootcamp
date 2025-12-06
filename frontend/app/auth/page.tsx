@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface LoginResponse {
   userId: number;
@@ -65,6 +65,12 @@ function AuthContent() {
         body: JSON.stringify({ login, password }),
       });
 
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(`Ошибка сервера: получен не-JSON ответ. Проверьте, что backend запущен на ${API_URL || "http://localhost:8000"}`);
+      }
+
       if (!response.ok) {
         const errorData: { detail: ErrorDetail } = await response.json();
         throw new Error(errorData.detail?.message || "Ошибка авторизации");
@@ -80,7 +86,14 @@ function AuthContent() {
       // Перенаправляем на страницу досок
       router.push("/boards");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Произошла ошибка");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === 'string') {
+        setError(err);
+      } else {
+        setError("Произошла ошибка при авторизации. Проверьте подключение к серверу.");
+      }
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -89,11 +102,12 @@ function AuthContent() {
   return (
     <div className="min-h-screen bg-[#5a5a5a]">
       {/* Header */}
-      <header style={{ padding: "0 24px" }} className="flex items-center justify-between h-14">
-        <Link href="/" className="text-[#a0a0a0] text-xl tracking-wide hover:text-white transition-colors">
-          Mirumir
-        </Link>
-        <span className="text-[#a0a0a0] text-xl tracking-wide">Auth Main</span>
+      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
+            Mirumir
+          </Link>
+        </div>
       </header>
 
       {/* Main Content */}

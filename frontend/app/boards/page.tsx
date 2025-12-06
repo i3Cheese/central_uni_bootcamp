@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface BoardSummary {
   boardId: number;
@@ -124,8 +124,15 @@ export default function BoardsPage() {
           return;
         }
 
+        const ownContentType = ownResponse.headers.get("content-type");
+        if (!ownContentType || !ownContentType.includes("application/json")) {
+          const text = await ownResponse.text();
+          throw new Error(`Ошибка сервера: получен не-JSON ответ. Проверьте, что backend запущен на ${API_URL || "http://localhost:8000"}`);
+        }
+
         if (!ownResponse.ok) {
-          throw new Error("Ошибка загрузки досок");
+          const errorData = await ownResponse.json().catch(() => ({ detail: { message: "Ошибка загрузки досок" } }));
+          throw new Error(errorData.detail?.message || "Ошибка загрузки досок");
         }
 
         const ownData: BoardsResponse = await ownResponse.json();
@@ -139,11 +146,19 @@ export default function BoardsPage() {
         });
 
         if (sharedResponse.ok) {
-          const sharedData: BoardsResponse = await sharedResponse.json();
-          setSharedBoards(sharedData.boards || []);
+          const sharedContentType = sharedResponse.headers.get("content-type");
+          if (sharedContentType && sharedContentType.includes("application/json")) {
+            const sharedData: BoardsResponse = await sharedResponse.json();
+            setSharedBoards(sharedData.boards || []);
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Произошла ошибка");
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Произошла ошибка при загрузке досок. Проверьте подключение к серверу.");
+        }
+        console.error("Boards loading error:", err);
       } finally {
         setIsLoading(false);
       }
@@ -386,44 +401,46 @@ export default function BoardsPage() {
 
   // Компонент хедера
   const Header = () => (
-    <header style={{ padding: "0 24px" }} className="flex items-center justify-between h-14">
-      <Link href="/boards" className="text-[#a0a0a0] text-xl tracking-wide hover:text-white transition-colors">
-        Mirumir
-      </Link>
-      {userLogin && (
-        <div ref={userMenuRef} className="relative">
-          <button
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            className="text-[#a0a0a0] text-base hover:text-white transition-colors flex items-center gap-2"
-          >
-            {userLogin}
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="currentColor"
-              className={`transition-transform ${showUserMenu ? "rotate-180" : ""}`}
+    <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
+      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
+          Mirumir
+        </Link>
+        {userLogin && (
+          <div ref={userMenuRef} className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="text-gray-600 text-base hover:text-gray-900 transition-colors flex items-center gap-2"
             >
-              <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" fill="none" />
-            </svg>
-          </button>
-
-          {showUserMenu && (
-            <div
-              style={{ padding: "4px" }}
-              className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
-            >
-              <button
-                onClick={handleLogout}
-                style={{ padding: "8px 16px" }}
-                className="text-sm text-red-500 hover:bg-gray-100 rounded"
+              {userLogin}
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="currentColor"
+                className={`transition-transform ${showUserMenu ? "rotate-180" : ""}`}
               >
-                Выйти
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+                <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" fill="none" />
+              </svg>
+            </button>
+
+            {showUserMenu && (
+              <div
+                style={{ padding: "4px" }}
+                className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
+              >
+                <button
+                  onClick={handleLogout}
+                  style={{ padding: "8px 16px" }}
+                  className="text-sm text-red-500 hover:bg-gray-100 rounded"
+                >
+                  Выйти
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </header>
   );
 
