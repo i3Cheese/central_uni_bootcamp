@@ -2,9 +2,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ResizableSticker from '../../components/sticker';
+import { HEADER_PADDING_X } from '../../constants/borders';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -101,6 +102,7 @@ const SAMPLE_BOARD_RESPONSE: BoardData = {
 
 export default function BoardPage() {
   const params = useParams();
+  const router = useRouter();
   const boardId = params.id;
 
   const [board, setBoard] = useState<BoardData | null>(null);
@@ -109,6 +111,9 @@ export default function BoardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useSampleData, setUseSampleData] = useState(false);
+  const [userLogin, setUserLogin] = useState<string | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -255,6 +260,34 @@ export default function BoardPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Load user login from localStorage
+  useEffect(() => {
+    const login = localStorage.getItem('userLogin');
+    setUserLogin(login);
+  }, []);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userLogin');
+    router.push('/auth');
   };
 
   // Update page title
@@ -540,50 +573,86 @@ export default function BoardPage() {
       )}
 
       {/* Controls Panel */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <header className="bg-white/90 backdrop-blur-sm border-b border-indigo-200/40 p-4 flex items-center">
+        <div className="flex flex-wrap items-center justify-between gap-4 w-full" style={{ paddingLeft: `${HEADER_PADDING_X}px`, paddingRight: `${HEADER_PADDING_X}px` }}>
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-gray-600 text-xl tracking-wide hover:text-gray-900 transition-colors">
-              Mirumir
+            <Link href="/boards" className="text-black text-2xl font-normal tracking-wide hover:text-indigo-600 transition-colors leading-none">
+              MIRUMIR
             </Link>
             {board && (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-slate-700">
                 / {board?.title || 'Board'}
                 {useSampleData && <span className="ml-2 text-yellow-600">(Sample Data)</span>}
               </div>
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {canEdit && (
-              <>
-                <span className="text-sm text-gray-600">New Sticker Color:</span>
-                <div className="flex gap-1">
-                  {colors.map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => setSelectedColor(color.value)}
-                      className={`w-6 h-6 rounded-full ${color.value} border-2 ${selectedColor === color.value ? color.border : 'border-transparent'
-                        } transition-all hover:scale-110`}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-                <button
-                  onClick={handleAddSticker}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-                >
-                  <span>+</span>
-                  <span>Add Sticker</span>
-                </button>
-              </>
-            )}
-            <div className="text-xs text-gray-500 ml-2">
-              {stickers.length} sticker{stickers.length !== 1 ? 's' : ''}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              {canEdit && (
+                <>
+                  <span className="text-sm text-slate-700">New Sticker Color:</span>
+                  <div className="flex gap-1">
+                    {colors.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() => setSelectedColor(color.value)}
+                        className={`w-6 h-6 rounded-full ${color.value} border-2 ${selectedColor === color.value ? color.border : 'border-transparent'
+                          } transition-all hover:scale-110`}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleAddSticker}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                  >
+                    <span>+</span>
+                    <span>Add Sticker</span>
+                  </button>
+                </>
+              )}
+              <div className="text-xs text-slate-500 ml-2">
+                {stickers.length} sticker{stickers.length !== 1 ? 's' : ''}
+              </div>
             </div>
+            {userLogin && (
+              <div ref={userMenuRef} className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="text-slate-700 text-base hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium"
+                >
+                  {userLogin}
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="currentColor"
+                    className={`transition-transform ${showUserMenu ? "rotate-180" : ""}`}
+                  >
+                    <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div
+                    style={{ padding: "4px" }}
+                    className="absolute right-0 top-full mt-1 bg-white border border-indigo-200/40 rounded-lg shadow-lg z-20"
+                  >
+                    <button
+                      onClick={handleLogout}
+                      style={{ padding: "8px 16px" }}
+                      className="text-sm text-red-500 hover:bg-red-50 rounded transition-colors"
+                    >
+                      Выйти
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Board Container */}
       <div
