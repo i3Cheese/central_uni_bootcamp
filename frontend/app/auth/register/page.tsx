@@ -30,6 +30,10 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    document.title = "Mirumir - Регистрация";
+  }, []);
+
   // Проверяем авторизацию
   useEffect(() => {
     const token = localStorage.getItem("token");

@@ -28,6 +28,10 @@ export default function BoardsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  useEffect(() => {
+    document.title = "Mirumir - Мои доски";
+  }, []);
   const [userLogin, setUserLogin] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);

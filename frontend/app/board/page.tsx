@@ -13,6 +13,10 @@ interface StickerData {
 }
 
 export default function StickerBoard() {
+  useEffect(() => {
+    document.title = "Mirumir - Доска";
+  }, []);
+
   const [stickers, setStickers] = useState<StickerData[]>([
     { 
       id: '1', 

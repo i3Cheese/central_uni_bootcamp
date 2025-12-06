@@ -31,6 +31,10 @@ function AuthContent() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  useEffect(() => {
+    document.title = "Mirumir - Вход";
+  }, []);
+
   // Проверяем авторизацию и редирект после регистрации
   useEffect(() => {
     const token = localStorage.getItem("token");

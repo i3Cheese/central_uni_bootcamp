@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mirumir - Авторизация",
+  title: "Mirumir",
   description: "Сервис коллаборативных досок",
 };
 

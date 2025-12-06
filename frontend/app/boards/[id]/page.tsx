@@ -257,6 +257,15 @@ export default function BoardPage() {
     }
   };
 
+  // Update page title
+  useEffect(() => {
+    if (board) {
+      document.title = board.title ? `Mirumir - ${board.title}` : "Mirumir - Доска";
+    } else {
+      document.title = "Mirumir - Загрузка доски...";
+    }
+  }, [board]);
+
   // Fetch board data
   useEffect(() => {
     fetchBoardFromApi();

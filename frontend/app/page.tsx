@@ -9,6 +9,10 @@ export default function Home() {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    document.title = "Mirumir - Главная";
+  }, []);
+
+  useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       router.push("/boards");
