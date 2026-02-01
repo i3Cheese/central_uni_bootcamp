@@ -19,7 +19,7 @@ backend/          # API на FastAPI
   schemas/         # Pydantic-схемы запросов/ответов
   tests/           # pytest, e2e по API
 
-frontend/         # SPA на Next.js (App Router)
+frontend/         # Next.js (App Router)
   app/             # страницы (auth, boards, board/[id]), компоненты, хуки
 
 docs/             # OpenAPI (auth, boards, stickers, sharing), схема БД (DBML)
